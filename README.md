@@ -45,7 +45,7 @@ rosdep install -i --from-path . --rosdistro foxy -y
 
 dnn_node是在地平线X3开发板上利用BPU处理器进行模型推理的pkg，定义在hobot_dnn中。
 
-hbm_img_msgs为自定义的图片消息格式，用于shared mem场景下的图片传输，hbm_img_msgs pkg定义在hobot_sensors中，因此如果使用shared mem进行图片传输，需要依赖此pkg。
+hbm_img_msgs为自定义的图片消息格式，用于shared mem场景下的图片传输，hbm_img_msgs pkg定义在hobot_msgs中，因此如果使用shared mem进行图片传输，需要下载hobot_msgs。
 
 ai_msgs为自定义的消息格式，用于算法模型推理后，发布推理结果，ai_msgs pkg定义在hobot_msgs中。
 
@@ -125,8 +125,7 @@ ai_msgs为自定义的消息格式，用于算法模型推理后，发布推理�
 
 ```
 export COLCON_CURRENT_PREFIX=./install
-source ./install/local_setup.sh
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/lib/hobot/
+source ./install/local_setup.bash
 # config中为示例使用的模型，根据实际安装路径进行拷贝
 # 如果是docker中编译安装路径为install/lib/mono2d_body_detection/config/，拷贝命令为cp -r install/lib/mono2d_body_detection/config/ .。
 # 也可以在启动指令中指定模型文件路径：-p model_file_name:=./multitask_body_kps_960x544.hbm，如果不指定，默认模型文件路径为config/multitask_body_kps_960x544.hbm

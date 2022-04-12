@@ -48,20 +48,14 @@ include_directories(include
   ${PROJECT_SOURCE_DIR}
 )
 
-set(SYS_ROOT ${CMAKE_SYSROOT})
-message("SYS_ROOT is " ${SYS_ROOT})
+message("CMAKE_SYSROOT is " ${CMAKE_SYSROOT})
 include_directories(
-  ${SYS_ROOT}/usr/include/
-  ${SYS_ROOT}/usr/include/opencv/
+  ${CMAKE_SYSROOT}/usr/include/
+  ${CMAKE_SYSROOT}/usr/include/opencv/
 )
 
 link_directories(
-  ${SYS_ROOT}/usr/lib/hobot/
-  ${SYS_ROOT}/usr/lib/hobot/dnn
-  ${SYS_ROOT}/usr/lib/hobot/easy_dnn
-  ${SYS_ROOT}/usr/lib/hobot/opencv
-  ${SYS_ROOT}/usr/lib/hobot/hobotlog
-  ${SYS_ROOT}/usr/lib/hobot/hbbpu/
+  ${CMAKE_SYSROOT}/usr/lib/hbbpu/
 )
 
 add_executable(${PROJECT_NAME}

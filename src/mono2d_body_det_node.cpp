@@ -415,7 +415,7 @@ int Mono2dBodyDetNode::Feed() {
 
     if (!pyramid) {
       RCLCPP_ERROR(rclcpp::get_logger("example"), "Get Nv12 pym fail");
-      return -1;
+      continue;
     }
 
     {
