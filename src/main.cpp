@@ -14,22 +14,10 @@
 
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
-  RCLCPP_WARN(rclcpp::get_logger("example"), "This is dnn node example!");
+  RCLCPP_WARN(rclcpp::get_logger("example"),
+  "This is mono2d body det example!");
 
-  std::string node_name = "mono2d_body_det";
-  Mono2dBodyDetNode body_det_node(node_name);
-  if (body_det_node.Init() == 0) {
-    if (body_det_node.Run() != 0) {
-      RCLCPP_ERROR(rclcpp::get_logger("example"),
-        "Run Mono2dBodyDetNode failed!");
-    } else {
-      RCLCPP_INFO(rclcpp::get_logger("example"),
-        "Run Mono2dBodyDetNode done!");
-    }
-  } else {
-    RCLCPP_ERROR(rclcpp::get_logger("example"),
-      "Init Mono2dBodyDetNode failed!");
-  }
+  rclcpp::spin(std::make_shared<Mono2dBodyDetNode>("mono2d_body_det"));
 
   rclcpp::shutdown();
   return 0;
