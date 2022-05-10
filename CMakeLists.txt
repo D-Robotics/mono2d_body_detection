@@ -25,6 +25,7 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(ai_msgs REQUIRED)
 find_package(dnn_node REQUIRED)
+find_package(hobot_mot REQUIRED)
 
 option(CV_BRIDGE_PKG "using cv_bridge pkg" OFF)
 if (${CV_BRIDGE_PKG})
@@ -54,8 +55,16 @@ include_directories(
   ${CMAKE_SYSROOT}/usr/include/opencv/
 )
 
+if(MOT_LIB_INSTALL_PATH)
+  message("MOT_LIB_INSTALL_PATH is defined as " ${MOT_LIB_INSTALL_PATH})
+else()
+  set(MOT_LIB_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+  message("set MOT_LIB_INSTALL_PATH as " ${MOT_LIB_INSTALL_PATH})
+endif()
+
 link_directories(
   ${CMAKE_SYSROOT}/usr/lib/hbbpu/
+  ${MOT_LIB_INSTALL_PATH}
 )
 
 add_executable(${PROJECT_NAME}
@@ -71,6 +80,7 @@ ament_target_dependencies(
   dnn_node
   sensor_msgs
   ai_msgs
+  hobot_mot
 )
 
 if (${BUILD_HBMEM})

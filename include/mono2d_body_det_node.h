@@ -10,6 +10,8 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <map>
+#include <set>
 
 #include "rclcpp/rclcpp.hpp"
 #ifdef CV_BRIDGE_PKG_ENABLED
@@ -25,6 +27,7 @@
 #include "dnn_node/dnn_node.h"
 
 #include "include/image_utils.h"
+#include "hobot_mot/hobot_mot.h"
 
 #include "ai_msgs/msg/perception_targets.hpp"
 #include "ai_msgs/msg/capture_targets.hpp"
@@ -51,6 +54,22 @@ using hobot::dnn_node::ModelRoiInferTask;
 using hobot::dnn_node::OutputParser;
 
 using ai_msgs::msg::PerceptionTargets;
+
+// 使用output manage解决异步多线程情况下模型输出乱序的问题
+class NodeOutputManage {
+ public:
+  void Feed(uint64_t ts_ms);
+  std::vector<std::shared_ptr<DnnNodeOutput>> Feed(
+    const std::shared_ptr<DnnNodeOutput> &node_output);
+
+ private:
+  std::set<uint64_t> cache_frame_;
+  std::map<uint64_t, std::shared_ptr<DnnNodeOutput>> cache_node_output_;
+  const uint8_t cache_size_limit_ = 10;
+  std::mutex mtx_;
+  std::condition_variable cv_;
+  const uint64_t smart_output_timeout_ms_ = 1000;
+};
 
 struct FasterRcnnOutput : public DnnNodeOutput {
   std::shared_ptr<std_msgs::msg::Header> image_msg_header = nullptr;
@@ -97,16 +116,29 @@ class Mono2dBodyDetNode : public DnnNode {
     {hand_box_output_index_, "hand"}
   };
 
+  // key is mot processing type, body/face/head/hand
+  // val is config file path
+  std::unordered_map<std::string, std::string> hobot_mot_configs_{
+    {"body", "config/iou2_method_param.json"},
+    {"face", "config/iou2_method_param.json"},
+    {"head", "config/iou2_method_param.json"},
+    {"hand", "config/iou2_euclid_method_param.json"}
+  };
+
+  // key is mot processing type, body/face/head/hand
+  // val is mot instance
+  std::unordered_map<std::string, std::shared_ptr<HobotMot>> hobot_mots_;
+
   int is_sync_mode_ = 0;
 
   // 使用shared mem通信方式订阅图片
-  int is_shared_mem_sub_ = 0;
+  int is_shared_mem_sub_ = 1;
 
   std::chrono::high_resolution_clock::time_point output_tp_;
   int output_frameCount_ = 0;
   std::mutex frame_stat_mtx_;
 
-  std::string msg_pub_topic_name_ = "hobot_mono2d_body_detection";
+  std::string ai_msg_pub_topic_name_ = "hobot_mono2d_body_detection";
   rclcpp::Publisher<ai_msgs::msg::PerceptionTargets>::SharedPtr
   msg_publisher_ = nullptr;
 
@@ -128,6 +160,15 @@ class Mono2dBodyDetNode : public DnnNode {
   // 和sensor_msgs::msg::CompressedImage格式扩展订阅压缩图
   std::string ros_img_topic_name_ = "/image_raw";
   void RosImgProcess(const sensor_msgs::msg::Image::ConstSharedPtr msg);
+
+  std::shared_ptr<NodeOutputManage> node_output_manage_ptr_ =
+  std::make_shared<NodeOutputManage>();
+
+  int DoMot(const time_t& time_stamp,
+  const std::unordered_map<int32_t, std::vector<MotBox>>& in_rois,
+  std::unordered_map<int32_t, std::vector<MotBox>>& out_rois,
+  std::unordered_map<int32_t,
+  std::vector<std::shared_ptr<MotTrackId>>>& out_disappeared_ids);
 };
 
 #endif  // MONO2D_BODY_DET_NODE_H_

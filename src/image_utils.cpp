@@ -6,20 +6,19 @@
 // reproduced, copied, transmitted, or used in any way for any purpose,
 // without the express written permission of Horizon Robotics Inc.
 
-#include <iostream>
+#include "include/image_utils.h"
+
+#include <algorithm>
 #include <fstream>
+#include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <memory>
 
-#include "include/image_utils.h"
 #include "dnn/hb_sys.h"
 
 std::shared_ptr<NV12PyramidInput> ImageUtils::GetNV12Pyramid(
-    const cv::Mat &bgr_mat,
-    int scaled_img_height,
-    int scaled_img_width) {
+    const cv::Mat &bgr_mat, int scaled_img_height, int scaled_img_width) {
   cv::Mat nv12_mat;
   cv::Mat mat_tmp;
   mat_tmp.create(scaled_img_height, scaled_img_width, bgr_mat.type());
@@ -69,19 +68,19 @@ std::shared_ptr<NV12PyramidInput> ImageUtils::GetNV12Pyramid(
   pyramid->uv_vir_addr = uv->virAddr;
   pyramid->uv_phy_addr = uv->phyAddr;
   pyramid->uv_stride = w_stride;
-  return std::shared_ptr<NV12PyramidInput>(
-      pyramid, [y, uv](NV12PyramidInput *pyramid) {
-        // Release memory after deletion
-        hbSysFreeMem(y);
-        hbSysFreeMem(uv);
-        delete y;
-        delete uv;
-        delete pyramid;
-      });
+  return std::shared_ptr<NV12PyramidInput>(pyramid,
+                                           [y, uv](NV12PyramidInput *pyramid) {
+                                             // Release memory after deletion
+                                             hbSysFreeMem(y);
+                                             hbSysFreeMem(uv);
+                                             delete y;
+                                             delete uv;
+                                             delete pyramid;
+                                           });
 }
 
 std::shared_ptr<NV12PyramidInput> ImageUtils::GetNV12PyramidFromNV12Img(
-    const char* in_img_data,
+    const char *in_img_data,
     int in_img_height,
     int in_img_width,
     int scaled_img_height,
@@ -92,7 +91,7 @@ std::shared_ptr<NV12PyramidInput> ImageUtils::GetNV12PyramidFromNV12Img(
   hbSysAllocCachedMem(y, scaled_img_height * w_stride);
   hbSysAllocCachedMem(uv, scaled_img_height / 2 * w_stride);
 
-  const uint8_t *data = reinterpret_cast<const uint8_t*>(in_img_data);
+  const uint8_t *data = reinterpret_cast<const uint8_t *>(in_img_data);
   auto *hb_y_addr = reinterpret_cast<uint8_t *>(y->virAddr);
   auto *hb_uv_addr = reinterpret_cast<uint8_t *>(uv->virAddr);
   int copy_w = std::min(in_img_width, scaled_img_width);
@@ -124,15 +123,15 @@ std::shared_ptr<NV12PyramidInput> ImageUtils::GetNV12PyramidFromNV12Img(
   pyramid->uv_vir_addr = uv->virAddr;
   pyramid->uv_phy_addr = uv->phyAddr;
   pyramid->uv_stride = w_stride;
-  return std::shared_ptr<NV12PyramidInput>(
-      pyramid, [y, uv](NV12PyramidInput *pyramid) {
-        // Release memory after deletion
-        hbSysFreeMem(y);
-        hbSysFreeMem(uv);
-        delete y;
-        delete uv;
-        delete pyramid;
-      });
+  return std::shared_ptr<NV12PyramidInput>(pyramid,
+                                           [y, uv](NV12PyramidInput *pyramid) {
+                                             // Release memory after deletion
+                                             hbSysFreeMem(y);
+                                             hbSysFreeMem(uv);
+                                             delete y;
+                                             delete uv;
+                                             delete pyramid;
+                                           });
 }
 
 int32_t ImageUtils::BGRToNv12(cv::Mat &bgr_mat, cv::Mat &img_nv12) {

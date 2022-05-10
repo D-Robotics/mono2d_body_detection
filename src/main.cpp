@@ -6,16 +6,16 @@
 // reproduced, copied, transmitted, or used in any way for any purpose,
 // without the express written permission of Horizon Robotics Inc.
 
-#include <string>
 #include <memory>
+#include <string>
 
-#include "rclcpp/rclcpp.hpp"
 #include "include/mono2d_body_det_node.h"
+#include "rclcpp/rclcpp.hpp"
 
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   RCLCPP_WARN(rclcpp::get_logger("example"),
-  "This is mono2d body det example!");
+              "This is mono2d body det example!");
 
   rclcpp::spin(std::make_shared<Mono2dBodyDetNode>("mono2d_body_det"));
 
