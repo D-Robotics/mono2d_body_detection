@@ -136,6 +136,7 @@ class Mono2dBodyDetNode : public DnnNode {
 
   std::chrono::high_resolution_clock::time_point output_tp_;
   int output_frameCount_ = 0;
+  int smart_fps_ = -1;
   std::mutex frame_stat_mtx_;
 
   std::string ai_msg_pub_topic_name_ = "hobot_mono2d_body_detection";

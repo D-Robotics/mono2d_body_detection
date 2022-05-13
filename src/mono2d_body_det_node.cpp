@@ -318,7 +318,7 @@ int Mono2dBodyDetNode::PostProcess(
       return -1;
     }
 
-    int smart_fps = 0;
+    int smart_fps = -1;
     {
       auto tp_now = std::chrono::system_clock::now();
       std::unique_lock<std::mutex> lk(frame_stat_mtx_);
@@ -326,14 +326,15 @@ int Mono2dBodyDetNode::PostProcess(
       auto interval = std::chrono::duration_cast<std::chrono::milliseconds>(
                           tp_now - output_tp_)
                           .count();
-      if (interval >= 1000) {
+      if (interval >= 5000) {
         RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"),
                     "Smart fps = %d",
                     output_frameCount_);
-        smart_fps = output_frameCount_;
+        smart_fps_ = output_frameCount_ / (interval / 1000);
         output_frameCount_ = 0;
         output_tp_ = std::chrono::system_clock::now();
       }
+      smart_fps = smart_fps_;
     }
 
     ai_msgs::msg::PerceptionTargets::UniquePtr pub_data(

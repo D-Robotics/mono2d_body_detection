@@ -103,9 +103,11 @@ source ./install/setup.bash
 cp -r install/lib/mono2d_body_detection/config/ .
 
 # 启动图片发布pkg
-ros2 run mipi_cam mipi_cam --ros-args -p out_format:=nv12 -p image_width:=960 -p image_height:=540 -p io_method:=shared_mem --log-level error &
+ros2 run mipi_cam mipi_cam --ros-args -p out_format:=nv12 -p image_width:=960 -p image_height:=544 -p io_method:=shared_mem --log-level error &
+# 启动jpeg图片编码&发布pkg
+ros2 run hobot_codec hobot_codec_republish --ros-args -p channel:=1 -p in_mode:=shared_mem -p in_format:=nv12 -p out_mode:=ros -p out_format:=jpeg -p sub_topic:=/hbmem_img -p pub_topic:=/image_jpeg --ros-args --log-level error &
 # 启动web展示pkg
-ros2 run websocket websocket --ros-args -p image_topic:=/hbmem_img -p image_type:=nv12_hbmem -p image_width:=960 -p image_height:=544 -p smart_topic:=/hobot_mono2d_body_detection -p smart_width:=960 -p smart_height:=544 --log-level error &
+ros2 run websocket websocket --ros-args -p image_topic:=/image_jpeg -p image_type:=mjpeg -p smart_topic:=/hobot_mono2d_body_detection --log-level error &
 
 # 启动单目rgb人体、人头、人脸、人手框和人体关键点检测pkg
 ros2 run mono2d_body_detection mono2d_body_detection
@@ -122,9 +124,11 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:./install/lib/
 cp -r install/lib/mono2d_body_detection/config/ .
 
 # 启动图片发布pkg
-./install/lib/mipi_cam/mipi_cam --ros-args -p out_format:=nv12 -p image_width:=960 -p image_height:=540 -p io_method:=shared_mem --log-level error &
+./install/lib/mipi_cam/mipi_cam --ros-args -p out_format:=nv12 -p image_width:=960 -p image_height:=544 -p io_method:=shared_mem --log-level error &
+# 启动jpeg图片编码&发布pkg
+./install/lib/hobot_codec/hobot_codec_republish --ros-args -p channel:=1 -p in_mode:=shared_mem -p in_format:=nv12 -p out_mode:=ros -p out_format:=jpeg -p sub_topic:=/hbmem_img -p pub_topic:=/image_jpeg --ros-args --log-level error &
 # 启动web展示pkg
-./install/lib/websocket/websocket --ros-args -p image_topic:=/hbmem_img -p image_type:=nv12_hbmem -p image_width:=960 -p image_height:=544 -p smart_topic:=/hobot_mono2d_body_detection -p smart_width:=960 -p smart_height:=544 --log-level error &
+./install/lib/websocket/websocket --ros-args -p image_topic:=/image_jpeg -p image_type:=mjpeg -p smart_topic:=/hobot_mono2d_body_detection --log-level error &
 
 # 启动单目rgb人体、人头、人脸、人手框和人体关键点检测pkg
 ./install/lib/mono2d_body_detection/mono2d_body_detection
@@ -143,7 +147,7 @@ cp -r install/lib/mono2d_body_detection/config/ .
 ## X3结果展示
 
 ```
-[INFO] [1652174901.762272397] [mono2d_body_det]: Recved img encoding: nv12, h: 540, w: 960, step: 960, index: 237654, stamp: 1652174901_761011505, data size: 777600
+[INFO] [1652174901.762272397] [mono2d_body_det]: Recved img encoding: nv12, h: 544, w: 960, step: 960, index: 237654, stamp: 1652174901_761011505, data size: 777600
 [INFO] [1652174901.764373787] [mono2d_body_det]: Output from, frame_id: 237653, stamp: 1652174901_727517262
 [INFO] [1652174901.764692229] [mono2d_body_det]: Output box type: body, rect size: 1
 [INFO] [1652174901.764930425] [mono2d_body_det]: rect: 219.975 3.49968 838.203 445.801, 0.996765
@@ -159,7 +163,7 @@ target track_id: 1, rois.size: 1, hand
 target track_id: 2, rois.size: 1, hand
 disappeared_targets.size: 0
 
-[INFO] [1652174901.796131372] [mono2d_body_det]: Recved img encoding: nv12, h: 540, w: 960, step: 960, index: 237655, stamp: 1652174901_794324342, data size: 777600
+[INFO] [1652174901.796131372] [mono2d_body_det]: Recved img encoding: nv12, h: 544, w: 960, step: 960, index: 237655, stamp: 1652174901_794324342, data size: 777600
 [INFO] [1652174901.796131330] [mono2d_body_det]: Output from, frame_id: 237654, stamp: 1652174901_761011505
 [INFO] [1652174901.798575535] [mono2d_body_det]: Output box type: body, rect size: 1
 [INFO] [1652174901.798992305] [mono2d_body_det]: rect: 251.877 1.97849 815.793 444.43, 0.995042
