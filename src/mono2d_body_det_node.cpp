@@ -501,6 +501,10 @@ int Mono2dBodyDetNode::PostProcess(
         for (const auto& roi : target.rois) {
           ss << ", " << roi.type.c_str();
         }
+        ss << ", points.size: " << target.points.size();
+        for (const auto& point : target.points) {
+          ss << ", " << point.type.c_str();
+        }
         ss << "\n";
       }
     }
