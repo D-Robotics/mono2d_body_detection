@@ -142,6 +142,7 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
 
   if (Init() != 0) {
     RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"), "Init failed!");
+    rclcpp::shutdown();
   }
 
   msg_publisher_ = this->create_publisher<ai_msgs::msg::PerceptionTargets>(
@@ -150,6 +151,7 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
   if (GetModelInputSize(0, model_input_width_, model_input_height_) < 0) {
     RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"),
                  "Get model input size fail!");
+    rclcpp::shutdown();
   } else {
     RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"),
                 "The model input width is %d and height is %d",
