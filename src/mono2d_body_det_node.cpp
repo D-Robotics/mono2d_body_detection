@@ -32,6 +32,22 @@
 #include <cv_bridge/cv_bridge.h>
 #endif
 
+#include "builtin_interfaces/msg/detail/time__struct.h"
+
+builtin_interfaces::msg::Time ConvertToRosTime(
+    const struct timespec& time_spec) {
+  builtin_interfaces::msg::Time stamp;
+  stamp.set__sec(time_spec.tv_sec);
+  stamp.set__nanosec(time_spec.tv_nsec);
+  return stamp;
+}
+
+int CalTimeMsDuration(const builtin_interfaces::msg::Time& start,
+                      const builtin_interfaces::msg::Time& end) {
+  return (end.sec - start.sec) * 1000 + end.nanosec / 1000 / 1000 -
+         start.nanosec / 1000 / 1000;
+}
+
 void NodeOutputManage::Feed(uint64_t ts_ms) {
   RCLCPP_DEBUG(
       rclcpp::get_logger("mono2d_body_det"), "feed frame ts: %llu", ts_ms);
@@ -297,6 +313,13 @@ int Mono2dBodyDetNode::PostProcess(
       continue;
     }
 
+    if (node_output->rt_stat->fps_updated) {
+      RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"),
+                  "input fps: %.2f, out fps: %.2f",
+                  node_output->rt_stat->input_fps,
+                  node_output->rt_stat->output_fps);
+    }
+
     auto fasterRcnn_output =
         std::dynamic_pointer_cast<FasterRcnnOutput>(node_output);
     {
@@ -311,10 +334,6 @@ int Mono2dBodyDetNode::PostProcess(
 
     struct timespec time_start = {0, 0};
     clock_gettime(CLOCK_REALTIME, &time_start);
-    ai_msgs::msg::Perf perf;
-    perf.set__type("PostProcess");
-    perf.stamp_start.sec = time_start.tv_sec;
-    perf.stamp_start.nanosec = time_start.tv_nsec;
 
     const auto& outputs = node_output->outputs;
     RCLCPP_DEBUG(rclcpp::get_logger("mono2d_body_det"),
@@ -326,25 +345,6 @@ int Mono2dBodyDetNode::PostProcess(
       return -1;
     }
 
-    int smart_fps = -1;
-    {
-      auto tp_now = std::chrono::system_clock::now();
-      std::unique_lock<std::mutex> lk(frame_stat_mtx_);
-      output_frameCount_++;
-      auto interval = std::chrono::duration_cast<std::chrono::milliseconds>(
-                          tp_now - output_tp_)
-                          .count();
-      if (interval >= 5000) {
-        RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"),
-                    "Smart fps = %d",
-                    output_frameCount_);
-        smart_fps_ = output_frameCount_ / (interval / 1000);
-        output_frameCount_ = 0;
-        output_tp_ = std::chrono::system_clock::now();
-      }
-      smart_fps = smart_fps_;
-    }
-
     ai_msgs::msg::PerceptionTargets::UniquePtr pub_data(
         new ai_msgs::msg::PerceptionTargets());
     if (fasterRcnn_output->image_msg_header) {
@@ -352,8 +352,9 @@ int Mono2dBodyDetNode::PostProcess(
       pub_data->header.set__frame_id(
           fasterRcnn_output->image_msg_header->frame_id);
     }
-
-    pub_data->set__fps(smart_fps);
+    if (output->rt_stat) {
+      pub_data->set__fps(round(output->rt_stat->input_fps));
+    }
 
     // key is model output index
     std::unordered_map<int32_t, std::vector<MotBox>> rois;
@@ -447,7 +448,7 @@ int Mono2dBodyDetNode::PostProcess(
           ss << "invalid id, rect: " << rect.x1 << " " << rect.y1 << " "
              << rect.x2 << " " << rect.y2 << ", score: " << rect.score
              << ", state_: " << static_cast<int>(rect.state_);
-          RCLCPP_WARN(
+          RCLCPP_INFO(
               rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
           continue;
         }
@@ -491,10 +492,68 @@ int Mono2dBodyDetNode::PostProcess(
       }
     }
 
-    clock_gettime(CLOCK_REALTIME, &time_start);
-    perf.stamp_end.sec = time_start.tv_sec;
-    perf.stamp_end.nanosec = time_start.tv_nsec;
-    pub_data->perfs.emplace_back(perf);
+    struct timespec time_now = {0, 0};
+    clock_gettime(CLOCK_REALTIME, &time_now);
+
+    // preprocess
+    ai_msgs::msg::Perf perf_preprocess;
+    perf_preprocess.set__type(model_name_ + "_preprocess");
+    perf_preprocess.set__stamp_start(
+        ConvertToRosTime(fasterRcnn_output->preprocess_timespec_start));
+    perf_preprocess.set__stamp_end(
+        ConvertToRosTime(fasterRcnn_output->preprocess_timespec_end));
+    perf_preprocess.set__time_ms_duration(CalTimeMsDuration(
+        perf_preprocess.stamp_start, perf_preprocess.stamp_end));
+    pub_data->perfs.emplace_back(perf_preprocess);
+
+    // predict
+    if (output->rt_stat) {
+      ai_msgs::msg::Perf perf;
+      perf.set__type(model_name_ + "_predict_infer");
+      perf.set__stamp_start(
+          ConvertToRosTime(output->rt_stat->infer_timespec_start));
+      perf.set__stamp_end(
+          ConvertToRosTime(output->rt_stat->infer_timespec_end));
+      perf.set__time_ms_duration(output->rt_stat->infer_time_ms);
+      pub_data->perfs.push_back(perf);
+
+      perf.set__type(model_name_ + "_predict_parse");
+      perf.set__stamp_start(
+          ConvertToRosTime(output->rt_stat->parse_timespec_start));
+      perf.set__stamp_end(
+          ConvertToRosTime(output->rt_stat->parse_timespec_end));
+      perf.set__time_ms_duration(output->rt_stat->parse_time_ms);
+      pub_data->perfs.push_back(perf);
+    }
+
+    // postprocess
+    ai_msgs::msg::Perf perf_postprocess;
+    perf_postprocess.set__type(model_name_ + "_postprocess");
+    perf_postprocess.set__stamp_start(ConvertToRosTime(time_start));
+    clock_gettime(CLOCK_REALTIME, &time_now);
+    perf_postprocess.set__stamp_end(ConvertToRosTime(time_now));
+    perf_postprocess.set__time_ms_duration(CalTimeMsDuration(
+        perf_postprocess.stamp_start, perf_postprocess.stamp_end));
+    pub_data->perfs.emplace_back(perf_postprocess);
+
+    // 从发布图像到发布AI结果的延迟
+    ai_msgs::msg::Perf perf_pipeline;
+    perf_pipeline.set__type(model_name_ + "_pipeline");
+    perf_pipeline.set__stamp_start(pub_data->header.stamp);
+    perf_pipeline.set__stamp_end(perf_postprocess.stamp_end);
+    perf_pipeline.set__time_ms_duration(
+        CalTimeMsDuration(perf_pipeline.stamp_start, perf_pipeline.stamp_end));
+    pub_data->perfs.push_back(perf_pipeline);
+
+    {
+      std::stringstream ss;
+      ss << "Publish frame_id: "
+         << fasterRcnn_output->image_msg_header->frame_id
+         << ", time_stamp: " << std::to_string(pub_data->header.stamp.sec)
+         << "_" << std::to_string(pub_data->header.stamp.nanosec) << "\n";
+      RCLCPP_INFO(
+          rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
+    }
 
     std::stringstream ss;
     ss << "Publish frame_id: " << fasterRcnn_output->image_msg_header->frame_id
@@ -530,7 +589,7 @@ int Mono2dBodyDetNode::PostProcess(
       }
     }
 
-    RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
+    RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
 
     msg_publisher_->publish(std::move(pub_data));
   }
@@ -663,6 +722,9 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
     return;
   }
 
+  struct timespec time_start = {0, 0};
+  clock_gettime(CLOCK_REALTIME, &time_start);
+
   std::stringstream ss;
   ss << "Recved img encoding: "
      << std::string(reinterpret_cast<const char*>(img_msg->encoding.data()))
@@ -724,6 +786,11 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
     node_output_manage_ptr_->Feed(img_msg->time_stamp.sec * 1000 +
                                   img_msg->time_stamp.nanosec / 1000 / 1000);
   }
+
+  dnn_output->preprocess_timespec_start = time_start;
+  struct timespec time_now = {0, 0};
+  clock_gettime(CLOCK_REALTIME, &time_now);
+  dnn_output->preprocess_timespec_end = time_now;
 
   uint32_t ret = 0;
   // 3. 开始预测
