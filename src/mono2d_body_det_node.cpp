@@ -415,6 +415,7 @@ int Mono2dBodyDetNode::PostProcess(
           pt.set__x(lmk.x);
           pt.set__y(lmk.y);
           target_point.point.emplace_back(pt);
+          target_point.confidence.push_back(lmk.score);
         }
         ss << "\n";
         RCLCPP_DEBUG(rclcpp::get_logger("mono2d_body_det"),
