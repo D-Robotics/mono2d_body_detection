@@ -25,7 +25,7 @@
 
 #include "dnn_node/dnn_node.h"
 #include "dnn_node/util/image_proc.h"
-#include "include/fasterrcnn_kps_output_parser.h"
+#include "dnn_node/util/output_parser/detection/fasterrcnn_kps_output_parser.h"
 #include "include/image_utils.h"
 #include "rclcpp/rclcpp.hpp"
 #ifdef CV_BRIDGE_PKG_ENABLED
