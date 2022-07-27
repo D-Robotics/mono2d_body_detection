@@ -85,7 +85,6 @@ add_executable(${PROJECT_NAME}
   src/main.cpp
   src/mono2d_body_det_node.cpp
   src/image_utils.cpp
-  src/fasterrcnn_kps_output_parser.cpp
 )
 
 ament_target_dependencies(
