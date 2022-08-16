@@ -353,7 +353,7 @@ int Mono2dBodyDetNode::PostProcess(
           fasterRcnn_output->image_msg_header->frame_id);
     }
     if (output->rt_stat) {
-      pub_data->set__fps(round(output->rt_stat->input_fps));
+      pub_data->set__fps(round(output->rt_stat->output_fps));
     }
 
     // key is model output index
