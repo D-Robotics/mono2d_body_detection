@@ -44,9 +44,7 @@ hobot_mot是多目标跟踪（MOT）package，用于检测框的跟踪、ID分�
    - 已安装ROS2编译工具colcon，安装命令：`pip install -U colcon-common-extensions`
 2. 编译
 
-编译命令：`colcon build --packages-select mono2d_body_detection --cmake-args -DMOT_LIB_INSTALL_PATH=INSTALL_PATH`
-
-其中INSTALL_PATH是hobot_mot package相关库在板端的安装绝对路径，根据实际路径进行设置。例如库安装在板端的/userdata/install/hobot_mot/lib，编译命令为`colcon build --packages-select mono2d_body_detection --cmake-args -DMOT_LIB_INSTALL_PATH=/userdata/install/hobot_mot/lib`。
+编译命令：`colcon build --packages-select mono2d_body_detection`
 
 ### Docker交叉编译
 

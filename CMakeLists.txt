@@ -69,12 +69,19 @@ include_directories(
   ${CMAKE_SYSROOT}/usr/include/opencv/
 )
 
-if(MOT_LIB_INSTALL_PATH)
-  message("MOT_LIB_INSTALL_PATH is defined as " ${MOT_LIB_INSTALL_PATH})
-else()
-  set(MOT_LIB_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
-  message("set MOT_LIB_INSTALL_PATH as " ${MOT_LIB_INSTALL_PATH})
+# 设置一个默认MOT库的安装路径
+set(MOT_LIB_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+# 如果find_package成功，使用查找到的路径更新MOT_LIB_INSTALL_PATH
+if(hobot_mot_LIBRARIES)
+  message("hobot_mot_LIBRARIES is ${hobot_mot_LIBRARIES}")
+  # 查找库路径的最后一个/符号
+  string(FIND ${hobot_mot_LIBRARIES} "/" index REVERSE)
+  # 获取库路径
+  string(SUBSTRING ${hobot_mot_LIBRARIES} 0 ${index} MOT_LIB_INSTALL_PATH)
+  message("update MOT_LIB_INSTALL_PATH as " ${MOT_LIB_INSTALL_PATH})
 endif()
+
+message("MOT_LIB_INSTALL_PATH is " ${MOT_LIB_INSTALL_PATH})
 
 link_directories(
   ${CMAKE_SYSROOT}/usr/lib/hbbpu/
