@@ -20,9 +20,7 @@
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
-#ifdef CV_BRIDGE_PKG_ENABLED
 #include "cv_bridge/cv_bridge.h"
-#endif
 
 #include "sensor_msgs/msg/image.hpp"
 

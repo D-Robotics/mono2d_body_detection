@@ -28,9 +28,7 @@
 #include "dnn_node/util/output_parser/detection/fasterrcnn_kps_output_parser.h"
 #include "include/image_utils.h"
 #include "rclcpp/rclcpp.hpp"
-#ifdef CV_BRIDGE_PKG_ENABLED
 #include <cv_bridge/cv_bridge.h>
-#endif
 
 #include "builtin_interfaces/msg/detail/time__struct.h"
 
@@ -634,7 +632,6 @@ void Mono2dBodyDetNode::RosImgProcess(
   // 使用图片生成pym，NV12PyramidInput为DNNInput的子类
   std::shared_ptr<hobot::easy_dnn::NV12PyramidInput> pyramid = nullptr;
   if ("rgb8" == img_msg->encoding) {
-#ifdef CV_BRIDGE_PKG_ENABLED
     auto cv_img =
         cv_bridge::cvtColorForDisplay(cv_bridge::toCvShare(img_msg), "bgr8");
     // dump recved img msg after convert
@@ -655,9 +652,6 @@ void Mono2dBodyDetNode::RosImgProcess(
 
     pyramid = ImageUtils::GetNV12Pyramid(
         cv_img->image, model_input_height_, model_input_width_);
-#else
-    RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"), "Unsupport cv bridge");
-#endif
   } else if ("nv12" == img_msg->encoding) {
     pyramid = ImageUtils::GetNV12PyramidFromNV12Img(
         reinterpret_cast<const char*>(img_msg->data.data()),
