@@ -25,7 +25,6 @@
 
 #include "dnn_node/dnn_node.h"
 #include "dnn_node/util/image_proc.h"
-#include "dnn_node/util/output_parser/detection/fasterrcnn_kps_output_parser.h"
 #include "include/image_utils.h"
 #include "rclcpp/rclcpp.hpp"
 #include <cv_bridge/cv_bridge.h>
@@ -145,18 +144,54 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
   this->get_parameter<int>("is_shared_mem_sub", is_shared_mem_sub_);
   this->get_parameter<std::string>("ai_msg_pub_topic_name",
                                    ai_msg_pub_topic_name_);
-
-  std::stringstream ss;
-  ss << "Parameter:"
-     << "\n is_sync_mode_: " << is_sync_mode_
-     << "\n model_file_name_: " << model_file_name_
-     << "\n is_shared_mem_sub: " << is_shared_mem_sub_
-     << "\n ai_msg_pub_topic_name: " << ai_msg_pub_topic_name_;
-  RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
+  {
+    std::stringstream ss;
+    ss << "Parameter:"
+      << "\n is_sync_mode_: " << is_sync_mode_
+      << "\n model_file_name_: " << model_file_name_
+      << "\n is_shared_mem_sub: " << is_shared_mem_sub_
+      << "\n ai_msg_pub_topic_name: " << ai_msg_pub_topic_name_;
+    RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
+  }
 
   if (Init() != 0) {
     RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"), "Init failed!");
     rclcpp::shutdown();
+    return;
+  }
+
+  // Init()之后模型已经加载成功，查询kps解析参数
+  auto model_manage = GetModel();
+  if (!model_manage) {
+    RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"), "Invalid model");
+    rclcpp::shutdown();
+    return;
+  }
+  parser_para_ = std::make_shared<FasterRcnnKpsParserPara>();
+  hbDNNTensorProperties tensor_properties;
+  model_manage->GetOutputTensorProperties(tensor_properties, kps_output_index_);
+  parser_para_->aligned_kps_dim.clear();
+  parser_para_->kps_shifts_.clear();
+  for (int i = 0; i < tensor_properties.alignedShape.numDimensions; i++) {
+    parser_para_->aligned_kps_dim.push_back(
+        tensor_properties.alignedShape.dimensionSize[i]);
+  }
+  for (int i = 0; i < tensor_properties.shift.shiftLen; i++) {
+    parser_para_->kps_shifts_.push_back(
+        static_cast<uint8_t>(tensor_properties.shift.shiftData[i]));
+  }
+  {
+    std::stringstream ss;
+    ss << "aligned_kps_dim:";
+    for (const auto& val : parser_para_->aligned_kps_dim) {
+      ss << " " << val;
+    }
+    ss << "\nkps_shifts: ";
+    for (const auto& val : parser_para_->kps_shifts_) {
+      ss << " " << val;
+    }
+    ss << "\n";
+    RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
   }
 
   msg_publisher_ = this->create_publisher<ai_msgs::msg::PerceptionTargets>(
@@ -217,74 +252,6 @@ int Mono2dBodyDetNode::SetNodePara() {
   return 0;
 }
 
-int Mono2dBodyDetNode::SetOutputParser() {
-  RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "Set output parser.");
-  // set output parser
-  auto model_manage = GetModel();
-  if (!model_manage || !dnn_node_para_ptr_) {
-    RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"), "Invalid model");
-    return -1;
-  }
-
-  if (model_manage->GetOutputCount() < model_output_count_) {
-    RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"),
-                 "Error! Model %s output count is %d, unmatch with count %d",
-                 dnn_node_para_ptr_->model_name.c_str(),
-                 model_manage->GetOutputCount(),
-                 model_output_count_);
-    return -1;
-  }
-
-  // 1 set box paser
-  // 使用easy dnn中定义的FaceHandDetectionOutputParser后处理进行更新
-  std::shared_ptr<OutputParser> box_out_parser =
-      std::make_shared<hobot::easy_dnn::FaceHandDetectionOutputParser>();
-  for (auto parse_idx : box_outputs_index_) {
-    model_manage->SetOutputParser(parse_idx, box_out_parser);
-  }
-
-  // 2 set kps paser
-  // 2.1 set dependencies
-  auto output_desc = std::make_shared<OutputDescription>(
-      model_manage, kps_output_index_, "body_kps_branch");
-  output_desc->GetDependencies().push_back(body_box_output_index_);
-  output_desc->SetType("body_kps");
-  model_manage->SetOutputDescription(output_desc);
-  // 2.2 create kps parser para and set para with model info
-  auto parser_para = std::make_shared<FasterRcnnKpsParserPara>();
-  hbDNNTensorProperties tensor_properties;
-  model_manage->GetOutputTensorProperties(tensor_properties, kps_output_index_);
-  parser_para->aligned_kps_dim.clear();
-  parser_para->kps_shifts_.clear();
-  for (int i = 0; i < tensor_properties.alignedShape.numDimensions; i++) {
-    parser_para->aligned_kps_dim.push_back(
-        tensor_properties.alignedShape.dimensionSize[i]);
-  }
-  for (int i = 0; i < tensor_properties.shift.shiftLen; i++) {
-    parser_para->kps_shifts_.push_back(
-        static_cast<uint8_t>(tensor_properties.shift.shiftData[i]));
-  }
-
-  std::stringstream ss;
-  ss << "aligned_kps_dim:";
-  for (const auto& val : parser_para->aligned_kps_dim) {
-    ss << " " << val;
-  }
-  ss << "\nkps_shifts: ";
-  for (const auto& val : parser_para->kps_shifts_) {
-    ss << " " << val;
-  }
-  ss << "\n";
-  RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
-
-  // 2.3 create and set kps parser
-  std::shared_ptr<OutputParser> kps_out_parser =
-      std::make_shared<FasterRcnnKpsOutputParser>(parser_para);
-  model_manage->SetOutputParser(kps_output_index_, kps_out_parser);
-
-  return 0;
-}
-
 int Mono2dBodyDetNode::PostProcess(
     const std::shared_ptr<DnnNodeOutput>& output) {
   if (!rclcpp::ok()) {
@@ -311,13 +278,6 @@ int Mono2dBodyDetNode::PostProcess(
       continue;
     }
 
-    if (node_output->rt_stat->fps_updated) {
-      RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"),
-                  "input fps: %.2f, out fps: %.2f",
-                  node_output->rt_stat->input_fps,
-                  node_output->rt_stat->output_fps);
-    }
-
     auto fasterRcnn_output =
         std::dynamic_pointer_cast<FasterRcnnOutput>(node_output);
     {
@@ -330,18 +290,22 @@ int Mono2dBodyDetNode::PostProcess(
           rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
     }
 
-    struct timespec time_start = {0, 0};
-    clock_gettime(CLOCK_REALTIME, &time_start);
-
-    const auto& outputs = node_output->outputs;
-    RCLCPP_DEBUG(rclcpp::get_logger("mono2d_body_det"),
-                 "outputs size: %d",
-                 outputs.size());
-    if (outputs.empty() ||
-        static_cast<int32_t>(outputs.size()) < model_output_count_) {
-      RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"), "Invalid outputs");
+    // 创建解析输出数据，检测框和关键点数据
+    // results的维度等于检测出来的目标类别数
+    std::vector<std::shared_ptr<hobot::dnn_node::parser_fasterrcnn::Filter2DResult>>
+        results;
+    std::shared_ptr<LandmarksResult> lmk_result = nullptr;
+    
+    // 使用hobot dnn内置的Parse解析方法，解析算法输出的DNNTensor类型数据
+    if (hobot::dnn_node::parser_fasterrcnn::Parse(node_output, parser_para_,
+    box_outputs_index_, kps_output_index_, body_box_output_index_, results, lmk_result) < 0) {
+      RCLCPP_ERROR(rclcpp::get_logger("dnn_node_sample"),
+                  "Parse node_output fail!");
       return -1;
     }
+
+    struct timespec time_start = {0, 0};
+    clock_gettime(CLOCK_REALTIME, &time_start);
 
     ai_msgs::msg::PerceptionTargets::UniquePtr pub_data(
         new ai_msgs::msg::PerceptionTargets());
@@ -359,7 +323,14 @@ int Mono2dBodyDetNode::PostProcess(
     std::vector<ai_msgs::msg::Point> body_kps;
 
     for (const auto& idx : box_outputs_index_) {
-      auto filter2d_result = dynamic_cast<Filter2DResult*>(outputs[idx].get());
+      if (idx >= results.size()) {
+        RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"),
+                     "Output index: %d exceeds results size %d",
+                     idx, results.size());
+        return -1;
+      }
+
+      auto filter2d_result = results.at(idx);
       if (!filter2d_result) {
         continue;
       }
@@ -399,8 +370,6 @@ int Mono2dBodyDetNode::PostProcess(
       }
     }
 
-    auto lmk_result =
-        dynamic_cast<LandmarksResult*>(outputs[kps_output_index_].get());
     if (lmk_result) {
       std::stringstream ss;
       for (const auto& value : lmk_result->values) {
@@ -589,6 +558,16 @@ int Mono2dBodyDetNode::PostProcess(
     }
 
     RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
+
+    if (node_output->rt_stat->fps_updated) {
+      RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"),
+                  "input fps: %.2f, out fps: %.2f, infer time ms: %d, "
+                  "post process time ms: %d",
+                  node_output->rt_stat->input_fps,
+                  node_output->rt_stat->output_fps,
+                  node_output->rt_stat->infer_time_ms,
+                  static_cast<int>(perf_postprocess.time_ms_duration));
+    }
 
     msg_publisher_->publish(std::move(pub_data));
   }

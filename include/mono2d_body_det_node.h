@@ -33,6 +33,7 @@
 #include "dnn_node/dnn_node.h"
 #include "hobot_mot/hobot_mot.h"
 #include "include/image_utils.h"
+#include "dnn_node/util/output_parser/detection/fasterrcnn_output_parser.h"
 
 #ifndef MONO2D_BODY_DET_NODE_H_
 #define MONO2D_BODY_DET_NODE_H_
@@ -54,7 +55,8 @@ using hobot::dnn_node::ModelManager;
 using hobot::dnn_node::ModelRoiInferTask;
 
 using hobot::dnn_node::OutputParser;
-
+using hobot::dnn_node::parser_fasterrcnn::FasterRcnnKpsParserPara;
+using hobot::dnn_node::parser_fasterrcnn::LandmarksResult;
 using ai_msgs::msg::PerceptionTargets;
 
 // 使用output manage解决异步多线程情况下模型输出乱序的问题
@@ -87,8 +89,6 @@ class Mono2dBodyDetNode : public DnnNode {
 
  protected:
   int SetNodePara() override;
-  int SetOutputParser() override;
-
   int PostProcess(const std::shared_ptr<DnnNodeOutput>& outputs) override;
 
  private:
@@ -114,6 +114,8 @@ class Mono2dBodyDetNode : public DnnNode {
       {head_box_output_index_, "head"},
       {face_box_output_index_, "face"},
       {hand_box_output_index_, "hand"}};
+
+  std::shared_ptr<FasterRcnnKpsParserPara> parser_para_ = nullptr;
 
   // key is mot processing type, body/face/head/hand
   // val is config file path
