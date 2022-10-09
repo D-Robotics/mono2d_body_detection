@@ -1,5 +1,11 @@
 # Changelog for package mono2d_body_detection
 
+tros_1.1.3 (2022-10-09)
+------------------
+1. 后处理中使用dnn node重构后的算法输出解析方法。
+2. 删除cv_bridge编译宏控制，默认使用cv_bridge。
+
+
 hhp_1.0.6 (2022-08-31)
 ------------------
 1. 编译脚本中自动查找依赖的MOT库安装路径，不需要编译时指定。
