@@ -1,6 +1,6 @@
 # Changelog for package mono2d_body_detection
 
-tros_1.1.3 (2022-10-09)
+tros_1.1.2rc1 (2022-10-09)
 ------------------
 1. 后处理中使用dnn node重构后的算法输出解析方法。
 2. 删除cv_bridge编译宏控制，默认使用cv_bridge。
