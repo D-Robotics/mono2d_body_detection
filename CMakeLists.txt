@@ -42,8 +42,8 @@ find_package(dnn_node REQUIRED)
 find_package(hobot_mot REQUIRED)
 find_package(cv_bridge REQUIRED)
 
-# BUILD_HBMEM is set in aarch64_toolchainfile.cmake
-if (${BUILD_HBMEM})
+option(SHARED_MEM "using shared mem" ON)
+if (${SHARED_MEM})
   message("using shared mem")
   find_package(hbm_img_msgs REQUIRED)
   add_definitions(-DSHARED_MEM_ENABLED)
@@ -96,7 +96,7 @@ ament_target_dependencies(
   cv_bridge
 )
 
-if (${BUILD_HBMEM})
+if (${SHARED_MEM})
   target_link_libraries(${PROJECT_NAME}
     hbmem
   )

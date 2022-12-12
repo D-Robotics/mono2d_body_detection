@@ -36,6 +36,12 @@ hobot_mot是多目标跟踪（MOT）package，用于检测框的跟踪、ID分�
 
  支持在X3 Ubuntu系统上编译和在PC上使用docker交叉编译两种方式。
 
+1. SHARED_MEM
+   - 零拷贝传输方式使能开关，默认打开(ON), 编译时可以通过--cmake-args -DSHARED_MEM=OFF关闭。
+   - 如果打开，编译会依赖hbm_img_msgs package，并且需要使用tros进行编译。
+   - 如果关闭，编译和运行不依赖hbm_img_msgs pkg，支持使用原生ros和tros进行编译。
+   - 对于零拷贝通信方式，当前只支持订阅nv12格式图片。
+
 ### Ubuntu板端编译
 
 1. 编译环境确认 
