@@ -36,6 +36,15 @@ hobot_mot是多目标跟踪（MOT）package，用于检测框的跟踪、ID分�
 
  支持在X3 Ubuntu系统上编译和在PC上使用docker交叉编译两种方式。
 
+### 编译选项
+
+1. BUILD_HBMEM
+   - 零拷贝传输方式使能开关。Docker交叉编译时默认打开(ON), 编译时可以通过-DBUILD_HBMEM=OFF关闭。
+   - 在板端编译时，零拷贝传输方式使能开关默认是关闭的。如果需要依赖零拷贝，可以通过-DBUILD_HBMEM=ON打开。
+   - 如果打开，编译会依赖hbm_img_msgs package，并且需要使用tros进行编译。
+   - 如果关闭，编译和运行不依赖hbm_img_msgs pkg，支持使用原生ros和tros进行编译。
+   - 对于零拷贝通信方式，当前只支持订阅nv12格式图片。
+
 ### Ubuntu板端编译
 
 1. 编译环境确认 
@@ -44,7 +53,7 @@ hobot_mot是多目标跟踪（MOT）package，用于检测框的跟踪、ID分�
    - 已安装ROS2编译工具colcon，安装命令：`pip install -U colcon-common-extensions`
 2. 编译
 
-编译命令：`colcon build --packages-select mono2d_body_detection`
+编译命令：`colcon build --packages-select mono2d_body_detection --cmake-args -DBUILD_HBMEM=ON`
 
 ### Docker交叉编译
 
