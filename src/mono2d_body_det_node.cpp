@@ -73,6 +73,7 @@ std::vector<std::shared_ptr<DnnNodeOutput>> NodeOutputManage::Feed(
       fasterRcnn_output->image_msg_header->stamp.nanosec / 1000 / 1000;
   RCLCPP_DEBUG(rclcpp::get_logger("mono2d_body_det"), "feed ts: %llu", ts_ms);
 
+  uint8_t loop_num = cache_size_limit_;
   {
     std::unique_lock<std::mutex> lk(mtx_);
     cache_node_output_[ts_ms] = in_node_output;
@@ -82,12 +83,16 @@ std::vector<std::shared_ptr<DnnNodeOutput>> NodeOutputManage::Feed(
     if (cache_frame_.empty()) {
       return node_outputs;
     }
+
+    loop_num = cache_node_output_.size();
   }
+
   RCLCPP_DEBUG(rclcpp::get_logger("mono2d_body_det"),
                "node_outputs.size(): %d",
                node_outputs.size());
 
-  while (true) {
+  // 按照时间戳顺序输出推理结果
+  for (uint8_t idx = 0; idx < loop_num; idx++) {
     std::shared_ptr<DnnNodeOutput> node_output = nullptr;
     {
       std::unique_lock<std::mutex> lk(mtx_);
@@ -128,6 +133,16 @@ std::vector<std::shared_ptr<DnnNodeOutput>> NodeOutputManage::Feed(
   }
 
   return node_outputs;
+}
+
+void NodeOutputManage::Erase(uint64_t ts_ms) {
+  std::unique_lock<std::mutex> lk(mtx_);
+  if (cache_frame_.find(ts_ms) != cache_frame_.end()) {
+    cache_frame_.erase(ts_ms);
+  }
+  if (cache_node_output_.find(ts_ms) != cache_node_output_.end()) {
+    cache_node_output_.erase(ts_ms);
+  }
 }
 
 Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
@@ -273,6 +288,22 @@ int Mono2dBodyDetNode::PostProcess(
     node_outputs = node_output_manage_ptr_->Feed(output);
   }
 
+  if (node_outputs.empty()) {
+    // 直接使用当前帧输出
+    node_outputs.push_back(output);
+    if (node_output_manage_ptr_) {
+      auto fasterRcnn_output =
+          std::dynamic_pointer_cast<FasterRcnnOutput>(output);
+      if (!fasterRcnn_output || !fasterRcnn_output->image_msg_header) {
+        RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"), "invalid output");
+        return -1;
+      }
+      node_output_manage_ptr_->Erase(
+        fasterRcnn_output->image_msg_header->stamp.sec * 1000 +
+        fasterRcnn_output->image_msg_header->stamp.nanosec / 1000 / 1000);
+    }
+  }
+
   for (const auto node_output : node_outputs) {
     if (!node_output) {
       continue;
@@ -285,7 +316,8 @@ int Mono2dBodyDetNode::PostProcess(
       ss << "Output from";
       ss << ", frame_id: " << fasterRcnn_output->image_msg_header->frame_id
          << ", stamp: " << fasterRcnn_output->image_msg_header->stamp.sec << "_"
-         << fasterRcnn_output->image_msg_header->stamp.nanosec;
+         << fasterRcnn_output->image_msg_header->stamp.nanosec
+         << ", infer time ms: " << node_output->rt_stat->infer_time_ms;
       RCLCPP_INFO(
           rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
     }

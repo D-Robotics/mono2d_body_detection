@@ -65,10 +65,12 @@ class NodeOutputManage {
   void Feed(uint64_t ts_ms);
   std::vector<std::shared_ptr<DnnNodeOutput>> Feed(
       const std::shared_ptr<DnnNodeOutput>& node_output);
+  void Erase(uint64_t ts_ms);
 
  private:
   std::set<uint64_t> cache_frame_;
   std::map<uint64_t, std::shared_ptr<DnnNodeOutput>> cache_node_output_;
+  // 如果图像采集频率是30fps，能够缓存10帧，对应要求端到端的推理耗时最长不能超过1000/30*10=750ms
   const uint8_t cache_size_limit_ = 10;
   std::mutex mtx_;
   std::condition_variable cv_;
