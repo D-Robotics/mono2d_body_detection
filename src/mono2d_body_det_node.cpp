@@ -31,6 +31,48 @@
 
 #include "builtin_interfaces/msg/detail/time__struct.h"
 
+#ifdef PLATFORM_X86
+
+enum class DataState {
+  /// valid
+  VALID = 0,
+  /// filtered
+  FILTERED = 1,
+  /// invisible
+  INVISIBLE = 2,
+  /// disappeared
+  DISAPPEARED = 3,
+  /// invalid
+  INVALID = 4,
+};
+
+struct box_s {
+  box_s() {}
+  box_s(int x1_, int y1_, int x2_, int y2_) {
+    x1 = x1_;
+    y1 = y1_;
+    x2 = x2_;
+    y2 = y2_;
+  }
+  box_s(int x1_, int y1_, int x2_, int y2_, float score_) {
+    x1 = x1_;
+    y1 = y1_;
+    x2 = x2_;
+    y2 = y2_;
+    score = score_;
+  }
+  int x1 = 0;
+  int y1 = 0;
+  int x2 = 0;
+  int y2 = 0;
+  float score = 1;
+  int id = 0;
+  DataState state_ = DataState::VALID;
+};
+
+using MotBox = box_s;
+
+#endif
 builtin_interfaces::msg::Time ConvertToRosTime(
     const struct timespec& time_spec) {
   builtin_interfaces::msg::Time stamp;
@@ -248,9 +290,11 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
         std::bind(
             &Mono2dBodyDetNode::RosImgProcess, this, std::placeholders::_1));
   }
+#ifndef PLATFORM_X86
   for (const auto& config : hobot_mot_configs_) {
     hobot_mots_[config.first] = std::make_shared<HobotMot>(config.second);
   }
+#endif
 }
 
 Mono2dBodyDetNode::~Mono2dBodyDetNode() {}
@@ -425,6 +469,7 @@ int Mono2dBodyDetNode::PostProcess(
     }
 
     std::unordered_map<int32_t, std::vector<MotBox>> out_rois;
+#ifndef PLATFORM_X86
     std::unordered_map<int32_t, std::vector<std::shared_ptr<MotTrackId>>>
         out_disappeared_ids;
 
@@ -434,8 +479,13 @@ int Mono2dBodyDetNode::PostProcess(
     time_t time_stamp = ts_ms;
 
     DoMot(time_stamp, rois, out_rois, out_disappeared_ids);
-
-    for (const auto& out_roi : out_rois) {
+#endif
+#ifndef PLATFORM_X86
+    for (const auto& out_roi : out_rois) 
+#else
+    for (const auto& out_roi : rois) 
+#endif
+    {
       std::string roi_type = "";
       if (box_outputs_index_type_.find(out_roi.first) !=
           box_outputs_index_type_.end()) {
@@ -443,7 +493,12 @@ int Mono2dBodyDetNode::PostProcess(
       }
       for (size_t idx = 0; idx < out_roi.second.size(); idx++) {
         const auto& rect = out_roi.second.at(idx);
-        if (rect.id < 0 || hobot_mot::DataState::INVALID == rect.state_) {
+#ifndef PLATFORM_X86
+        if (rect.id < 0 || hobot_mot::DataState::INVALID == rect.state_) 
+#else
+        if (rect.id < 0 || DataState::INVALID == rect.state_) 
+#endif
+        {
           std::stringstream ss;
           ss << "invalid id, rect: " << rect.x1 << " " << rect.y1 << " "
              << rect.x2 << " " << rect.y2 << ", score: " << rect.score
@@ -469,7 +524,7 @@ int Mono2dBodyDetNode::PostProcess(
         pub_data->targets.emplace_back(std::move(target));
       }
     }
-
+#ifndef PLATFORM_X86
     for (const auto& disappeared_id : out_disappeared_ids) {
       std::string roi_type = "";
       if (box_outputs_index_type_.find(disappeared_id.first) !=
@@ -491,7 +546,7 @@ int Mono2dBodyDetNode::PostProcess(
         pub_data->disappeared_targets.emplace_back(std::move(target));
       }
     }
-
+#endif
     struct timespec time_now = {0, 0};
     clock_gettime(CLOCK_REALTIME, &time_now);
 
@@ -818,7 +873,7 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
   }
 }
 #endif
-
+#ifndef PLATFORM_X86
 int Mono2dBodyDetNode::DoMot(
     const time_t& time_stamp,
     const std::unordered_map<int32_t, std::vector<MotBox>>& in_rois,
@@ -861,3 +916,4 @@ int Mono2dBodyDetNode::DoMot(
   }
   return 0;
 }
+#endif

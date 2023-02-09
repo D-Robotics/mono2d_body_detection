@@ -39,7 +39,6 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(ai_msgs REQUIRED)
 find_package(dnn_node REQUIRED)
-find_package(hobot_mot REQUIRED)
 find_package(cv_bridge REQUIRED)
 
 # BUILD_HBMEM is set in aarch64_toolchainfile.cmake
@@ -55,10 +54,37 @@ include_directories(include
   ${PROJECT_SOURCE_DIR}
 )
 
+if(PLATFORM_X3)
+  message("build platform X3")
+  set(SYS_ROOT ${CMAKE_SYSROOT})
+elseif(PLATFORM_J5)
+  message("build platform J5")
+elseif(PLATFORM_X86)
+  message("build platform X86")
+  message("THIRD_PARTY is " ${THIRD_PARTY})
+  add_definitions(-DPLATFORM_X86)
+  set(SYS_ROOT ${THIRD_PARTY})
+  link_directories(${THIRD_PARTY}/usr/lib)
+else()
+  message("invalid platform, build platform X3 default")
+  set(SYS_ROOT ${CMAKE_SYSROOT})
+endif()
+
 message("CMAKE_SYSROOT is " ${CMAKE_SYSROOT})
 include_directories(
-  ${CMAKE_SYSROOT}/usr/include/
-  ${CMAKE_SYSROOT}/usr/include/opencv/
+  ${SYS_ROOT}/usr/include/
+  ${SYS_ROOT}/usr/include/opencv/
+)
+
+link_directories(
+  ${SYS_ROOT}/usr/lib/hbbpu/
+)
+
+if (NOT PLATFORM_X86)
+find_package(hobot_mot REQUIRED)
+
+link_directories(
+  ${MOT_LIB_INSTALL_PATH}
 )
 
 # 设置一个默认MOT库的安装路径
@@ -72,13 +98,12 @@ if(hobot_mot_LIBRARIES)
   string(SUBSTRING ${hobot_mot_LIBRARIES} 0 ${index} MOT_LIB_INSTALL_PATH)
   message("update MOT_LIB_INSTALL_PATH as " ${MOT_LIB_INSTALL_PATH})
 endif()
-
-message("MOT_LIB_INSTALL_PATH is " ${MOT_LIB_INSTALL_PATH})
-
-link_directories(
-  ${CMAKE_SYSROOT}/usr/lib/hbbpu/
-  ${MOT_LIB_INSTALL_PATH}
+ament_target_dependencies(
+  ${PROJECT_NAME}
+  hobot_mot
 )
+message("MOT_LIB_INSTALL_PATH is " ${MOT_LIB_INSTALL_PATH})
+endif()
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
@@ -92,14 +117,10 @@ ament_target_dependencies(
   dnn_node
   sensor_msgs
   ai_msgs
-  hobot_mot
   cv_bridge
 )
 
 if (${BUILD_HBMEM})
-  target_link_libraries(${PROJECT_NAME}
-    hbmem
-  )
   ament_target_dependencies(
     ${PROJECT_NAME}
     hbm_img_msgs
