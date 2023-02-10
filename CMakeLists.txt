@@ -98,11 +98,7 @@ if(hobot_mot_LIBRARIES)
   string(SUBSTRING ${hobot_mot_LIBRARIES} 0 ${index} MOT_LIB_INSTALL_PATH)
   message("update MOT_LIB_INSTALL_PATH as " ${MOT_LIB_INSTALL_PATH})
 endif()
-ament_target_dependencies(
-  ${PROJECT_NAME}
-  hobot_mot
-)
-message("MOT_LIB_INSTALL_PATH is " ${MOT_LIB_INSTALL_PATH})
+
 endif()
 
 add_executable(${PROJECT_NAME}
@@ -110,6 +106,14 @@ add_executable(${PROJECT_NAME}
   src/mono2d_body_det_node.cpp
   src/image_utils.cpp
 )
+
+if (NOT PLATFORM_X86)
+  ament_target_dependencies(
+    ${PROJECT_NAME}
+    hobot_mot
+  )
+  message("MOT_LIB_INSTALL_PATH is " ${MOT_LIB_INSTALL_PATH})
+endif()
 
 ament_target_dependencies(
   ${PROJECT_NAME}
