@@ -29,7 +29,7 @@ hobot_mot是多目标跟踪（MOT）package，用于检测框的跟踪、ID分�
 
 - 编程语言: C/C++
 - 开发平台: X3/X86
-- 系统版本：Ubuntu 20.0.4
+- 系统版本：Ubuntu 20.04
 - 编译工具链:Linux GCC 9.3.0/Linaro GCC 9.3.0
 
 ## 编译
@@ -45,7 +45,7 @@ hobot_mot是多目标跟踪（MOT）package，用于检测框的跟踪、ID分�
    - 如果关闭，编译和运行不依赖hbm_img_msgs pkg，支持使用原生ros和tros进行编译。
    - 对于零拷贝通信方式，当前只支持订阅nv12格式图片。
 
-### Ubuntu板端编译
+### Ubuntu板端编译X3版本
 
 1. 编译环境确认 
    - 板端已安装X3 Ubuntu系统。
@@ -55,7 +55,7 @@ hobot_mot是多目标跟踪（MOT）package，用于检测框的跟踪、ID分�
 
 编译命令：`colcon build --packages-select mono2d_body_detection --cmake-args -DBUILD_HBMEM=ON`
 
-### Docker交叉编译
+### Docker交叉编译X3版本
 
 1. 编译环境确认
 
@@ -65,18 +65,37 @@ hobot_mot是多目标跟踪（MOT）package，用于检测框的跟踪、ID分�
 
    - 编译命令：
 
-```
-export TARGET_ARCH=aarch64
-export TARGET_TRIPLE=aarch64-linux-gnu
-export CROSS_COMPILE=/usr/bin/$TARGET_TRIPLE-
+   ```
+   export TARGET_ARCH=aarch64
+   export TARGET_TRIPLE=aarch64-linux-gnu
+   export CROSS_COMPILE=/usr/bin/$TARGET_TRIPLE-
 
-colcon build --packages-select mono2d_body_detection \
-   --merge-install \
-   --cmake-force-configure \
-   --cmake-args \
-   --no-warn-unused-cli \
-   -DCMAKE_TOOLCHAIN_FILE=`pwd`/robot_dev_config/aarch64_toolchainfile.cmake
-```
+   colcon build --packages-select mono2d_body_detection \
+      --merge-install \
+      --cmake-force-configure \
+      --cmake-args \
+      --no-warn-unused-cli \
+      -DCMAKE_TOOLCHAIN_FILE=`pwd`/robot_dev_config/aarch64_toolchainfile.cmake
+   ```
+
+### X86 Ubuntu系统上编译 X86版本
+
+1. 编译环境确认
+
+   - x86 ubuntu版本: ubuntu20.04
+
+2. 编译
+
+   - 编译命令：
+
+   ```
+   colcon build --packages-select mono2d_body_detection  \
+      --merge-install \
+      --cmake-args \
+      -DPLATFORM_X86=ON \
+      -DBUILD_HBMEM=ON \
+      -DTHIRD_PARTY=`pwd`/../sysroot_docker \
+   ```
 
 ## 注意事项
 
@@ -107,7 +126,7 @@ colcon build --packages-select mono2d_body_detection \
 
 编译成功后，将生成的install路径拷贝到地平线X3开发板上（如果是在X3上编译，忽略拷贝步骤），并执行如下命令运行：
 
-### **Ubuntu**
+### **X3 Ubuntu**
 
 运行方式1，使用ros2 run启动：
 
@@ -142,7 +161,7 @@ ros2 launch install/share/mono2d_body_detection/launch/hobot_mono2d_body_detecti
 
 ```
 
-### **Linux**
+### **X3 Linux**
 
 ```
 export ROS_LOG_DIR=/userdata/
@@ -160,6 +179,23 @@ cp -r install/lib/mono2d_body_detection/config/ .
 
 # 启动单目rgb人体、人头、人脸、人手框和人体关键点检测pkg
 ./install/lib/mono2d_body_detection/mono2d_body_detection
+
+```
+
+### **X86 Ubuntu**
+
+```
+export COLCON_CURRENT_PREFIX=./install
+source ./install/setup.bash
+
+# config中为示例使用的模型，根据实际安装路径进行拷贝
+cp -r install/lib/mono2d_body_detection/config/ .
+
+#设置运行环境变量
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:`pwd`/../sysroot_docker/usr/lib
+
+# 启动launch文件
+ros2 launch install/share/mono2d_body_detection/launch/hobot_mono2d_body_detection.launch.py
 
 ```
 
