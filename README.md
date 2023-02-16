@@ -191,9 +191,6 @@ source ./install/setup.bash
 # config中为示例使用的模型，根据实际安装路径进行拷贝
 cp -r install/lib/mono2d_body_detection/config/ .
 
-#设置运行环境变量
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:`pwd`/../sysroot_docker/usr/lib
-
 # 启动launch文件
 export CAM_TYPE=usb
 ros2 launch install/share/mono2d_body_detection/launch/hobot_mono2d_body_detection.launch.py
