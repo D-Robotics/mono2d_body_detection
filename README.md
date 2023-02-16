@@ -195,6 +195,7 @@ cp -r install/lib/mono2d_body_detection/config/ .
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:`pwd`/../sysroot_docker/usr/lib
 
 # 启动launch文件
+export CAM_TYPE=usb
 ros2 launch install/share/mono2d_body_detection/launch/hobot_mono2d_body_detection.launch.py
 
 ```
