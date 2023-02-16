@@ -28,10 +28,13 @@
 #include "hbm_img_msgs/msg/hbm_msg1080_p.hpp"
 #endif
 
+#ifndef PLATFORM_X86
+#include "hobot_mot/hobot_mot.h"
+#endif
+
 #include "ai_msgs/msg/capture_targets.hpp"
 #include "ai_msgs/msg/perception_targets.hpp"
 #include "dnn_node/dnn_node.h"
-#include "hobot_mot/hobot_mot.h"
 #include "include/image_utils.h"
 #include "dnn_node/util/output_parser/detection/fasterrcnn_output_parser.h"
 
@@ -121,6 +124,7 @@ class Mono2dBodyDetNode : public DnnNode {
 
   // key is mot processing type, body/face/head/hand
   // val is config file path
+#ifndef PLATFORM_X86
   std::unordered_map<std::string, std::string> hobot_mot_configs_{
       {"body", "config/iou2_method_param.json"},
       {"face", "config/iou2_method_param.json"},
@@ -130,6 +134,7 @@ class Mono2dBodyDetNode : public DnnNode {
   // key is mot processing type, body/face/head/hand
   // val is mot instance
   std::unordered_map<std::string, std::shared_ptr<HobotMot>> hobot_mots_;
+#endif
 
   int is_sync_mode_ = 0;
 
@@ -161,13 +166,14 @@ class Mono2dBodyDetNode : public DnnNode {
 
   std::shared_ptr<NodeOutputManage> node_output_manage_ptr_ =
       std::make_shared<NodeOutputManage>();
-
+#ifndef PLATFORM_X86
   int DoMot(
       const time_t& time_stamp,
       const std::unordered_map<int32_t, std::vector<MotBox>>& in_rois,
       std::unordered_map<int32_t, std::vector<MotBox>>& out_rois,
       std::unordered_map<int32_t, std::vector<std::shared_ptr<MotTrackId>>>&
           out_disappeared_ids);
+#endif
 };
 
 #endif  // MONO2D_BODY_DET_NODE_H_
