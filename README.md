@@ -190,9 +190,10 @@ source ./install/setup.bash
 
 # config中为示例使用的模型，根据实际安装路径进行拷贝
 cp -r install/lib/mono2d_body_detection/config/ .
+cp -r /opt/tros/lib/dnn_node_example/config/ .
 
 # 启动launch文件
-export CAM_TYPE=usb
+export CAM_TYPE=fb
 ros2 launch install/share/mono2d_body_detection/launch/hobot_mono2d_body_detection.launch.py
 
 ```

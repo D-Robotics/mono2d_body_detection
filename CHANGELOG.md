@@ -1,5 +1,9 @@
 # Changelog for package mono2d_body_detection
 
+tros_1.1.6rc1 (2023-03-24)
+------------------
+1. 增加launch文件中图片回灌的方式
+
 tros_1.1.6a (2023-02-16)
 ------------------
 1. 适配x86版本功能
