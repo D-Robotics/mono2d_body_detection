@@ -58,7 +58,7 @@ if(PLATFORM_X3)
   message("build platform X3")
   set(SYS_ROOT ${CMAKE_SYSROOT})
 elseif(PLATFORM_J5)
-  message("build platform J5")
+  message("build ${PROJECT_NAME} for platform J5")
   set(SYS_ROOT ${CMAKE_SYSROOT})
 elseif(PLATFORM_X86)
   message("build platform X86")
@@ -68,6 +68,7 @@ elseif(PLATFORM_X86)
   link_directories(${THIRD_PARTY}/usr/lib)
 else()
   message("invalid platform, build platform X3 default")
+  set(PLATFORM_X3 ON)
   set(SYS_ROOT ${CMAKE_SYSROOT})
 endif()
 
@@ -140,10 +141,26 @@ install(
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY
+if(PLATFORM_J5)
+  install(DIRECTORY
+  ${PROJECT_SOURCE_DIR}/config/J5/
+  DESTINATION lib/${PROJECT_NAME}/config/
+  )
+  # install(FILE
+  # ${PROJECT_SOURCE_DIR}/config/iou2_euclid_method_param.json
+  # DESTINATION lib/${PROJECT_NAME}/config/
+  # )
+  # install(FILE
+  # ${PROJECT_SOURCE_DIR}/config/iou2_method_param.json
+  # DESTINATION lib/${PROJECT_NAME}/config/
+  # )
+else()
+  install(DIRECTORY
   ${PROJECT_SOURCE_DIR}/config/
   DESTINATION lib/${PROJECT_NAME}/config/
-)
+  )
+endif()
+
 
 install(DIRECTORY
 ${PROJECT_SOURCE_DIR}/launch/
