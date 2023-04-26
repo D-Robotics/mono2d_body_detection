@@ -157,7 +157,7 @@ source ./install/setup.bash
 cp -r install/lib/mono2d_body_detection/config/ .
 
 # 启动launch文件
-ros2 launch install/share/mono2d_body_detection/launch/hobot_mono2d_body_detection.launch.py
+ros2 launch install/share/mono2d_body_detection/launch/mono2d_body_detection.launch.py
 
 ```
 
@@ -194,7 +194,7 @@ cp -r /opt/tros/lib/dnn_node_example/config/ .
 
 # 启动launch文件
 export CAM_TYPE=fb
-ros2 launch install/share/mono2d_body_detection/launch/hobot_mono2d_body_detection.launch.py
+ros2 launch install/share/mono2d_body_detection/launch/mono2d_body_detection.launch.py
 
 ```
 
