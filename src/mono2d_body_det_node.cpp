@@ -195,19 +195,27 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
   this->declare_parameter<int>("is_shared_mem_sub", is_shared_mem_sub_);
   this->declare_parameter<std::string>("ai_msg_pub_topic_name",
                                        ai_msg_pub_topic_name_);
+  this->declare_parameter<std::string>("ros_img_topic_name",
+                                       ros_img_topic_name_);   
+  this->declare_parameter<int>("image_gap", image_gap_);      
 
   this->get_parameter<int>("is_sync_mode", is_sync_mode_);
   this->get_parameter<std::string>("model_file_name", model_file_name_);
   this->get_parameter<int>("is_shared_mem_sub", is_shared_mem_sub_);
   this->get_parameter<std::string>("ai_msg_pub_topic_name",
                                    ai_msg_pub_topic_name_);
+  this->get_parameter<std::string>("ros_img_topic_name",
+                                       ros_img_topic_name_); 
+  this->get_parameter<int>("image_gap", image_gap_);  
   {
     std::stringstream ss;
     ss << "Parameter:"
       << "\n is_sync_mode_: " << is_sync_mode_
       << "\n model_file_name_: " << model_file_name_
       << "\n is_shared_mem_sub: " << is_shared_mem_sub_
-      << "\n ai_msg_pub_topic_name: " << ai_msg_pub_topic_name_;
+      << "\n ai_msg_pub_topic_name: " << ai_msg_pub_topic_name_
+      << "\n ros_img_topic_name: " << ros_img_topic_name_ 
+      << "\n image_gap: " << image_gap_;
     RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
   }
 
@@ -676,7 +684,11 @@ void Mono2dBodyDetNode::RosImgProcess(
   if (!img_msg || !rclcpp::ok()) {
     return;
   }
-
+  static int gap_cnt = 0;
+  if (++gap_cnt < image_gap_) {
+    return;
+  }
+  gap_cnt = 0;
   std::stringstream ss;
   ss << "Recved img encoding: " << img_msg->encoding
      << ", h: " << img_msg->height << ", w: " << img_msg->width
@@ -782,7 +794,11 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
   if (!img_msg || !rclcpp::ok()) {
     return;
   }
-
+  static int gap_cnt = 0;
+  if (++gap_cnt < image_gap_) {
+    return;
+  }
+  gap_cnt = 0;
   struct timespec time_start = {0, 0};
   clock_gettime(CLOCK_REALTIME, &time_start);
 
