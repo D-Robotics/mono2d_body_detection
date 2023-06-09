@@ -709,7 +709,7 @@ void Mono2dBodyDetNode::RosImgProcess(
   // 1. 将图片处理成模型输入数据类型DNNInput
   // 使用图片生成pym，NV12PyramidInput为DNNInput的子类
   std::shared_ptr<hobot::easy_dnn::NV12PyramidInput> pyramid = nullptr;
-  if ("rgb8" == img_msg->encoding) {
+  if ("rgb8" == img_msg->encoding || "bgr8" == img_msg->encoding) {
     auto cv_img =
         cv_bridge::cvtColorForDisplay(cv_bridge::toCvShare(img_msg), "bgr8");
     // dump recved img msg after convert
