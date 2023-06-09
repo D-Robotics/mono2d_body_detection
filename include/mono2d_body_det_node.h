@@ -135,7 +135,9 @@ class Mono2dBodyDetNode : public DnnNode {
   // val is mot instance
   std::unordered_map<std::string, std::shared_ptr<HobotMot>> hobot_mots_;
 #endif
-
+  
+  int image_gap_ = 1;
+ 
   int is_sync_mode_ = 0;
 
   // 使用shared mem通信方式订阅图片
