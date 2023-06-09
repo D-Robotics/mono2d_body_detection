@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <atomic>
 
 #include "rclcpp/rclcpp.hpp"
 #include "cv_bridge/cv_bridge.h"
@@ -101,6 +102,10 @@ class Mono2dBodyDetNode : public DnnNode {
       "config/multitask_body_head_face_hand_kps_960x544.hbm";
   std::string model_name_ = "multitask_body_head_face_hand_kps_960x544";
   ModelTaskType model_task_type_ = ModelTaskType::ModelInferType;
+
+
+  std::atomic<double> width_scale_{1.0};
+  std::atomic<double> height_scale_{1.0};
 
   int model_input_width_ = -1;
   int model_input_height_ = -1;

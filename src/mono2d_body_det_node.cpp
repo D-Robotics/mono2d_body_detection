@@ -435,14 +435,19 @@ int Mono2dBodyDetNode::PostProcess(
                   filter2d_result->boxes.size());
 
       for (auto& rect : filter2d_result->boxes) {
+        rect.left /= width_scale_;
+        rect.right /= width_scale_;
+        rect.top /= height_scale_;
+        rect.bottom /= height_scale_;
         if (rect.left < 0) rect.left = 0;
         if (rect.top < 0) rect.top = 0;
-        if (rect.right > model_input_width_) {
-          rect.right = model_input_width_;
+        if (rect.right > model_input_width_ / width_scale_) {
+          rect.right = model_input_width_ / width_scale_;
         }
-        if (rect.bottom > model_input_height_) {
-          rect.bottom = model_input_height_;
+        if (rect.bottom > model_input_height_ / height_scale_) {
+          rect.bottom = model_input_height_ / height_scale_;
         }
+
         std::stringstream ss;
         ss << "rect: " << rect.left << " " << rect.top << " " << rect.right
            << " " << rect.bottom << ", " << rect.conf;
@@ -463,8 +468,8 @@ int Mono2dBodyDetNode::PostProcess(
         for (const auto& lmk : value) {
           ss << "\n" << lmk.x << "," << lmk.y << "," << lmk.score;
           geometry_msgs::msg::Point32 pt;
-          pt.set__x(lmk.x);
-          pt.set__y(lmk.y);
+          pt.set__x(lmk.x / width_scale_);
+          pt.set__y(lmk.y / height_scale_);
           target_point.point.emplace_back(pt);
           target_point.confidence.push_back(lmk.score);
         }
@@ -698,7 +703,8 @@ void Mono2dBodyDetNode::RosImgProcess(
      << img_msg->header.stamp.nanosec
      << ", data size: " << img_msg->data.size();
   RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
-
+  width_scale_ = static_cast<double>(model_input_width_) / img_msg->width;
+  height_scale_ = static_cast<double>(model_input_height_) / img_msg->height;
   // dump recved img msg
   // std::ofstream ofs("img." + img_msg->encoding);
   // ofs.write(reinterpret_cast<const char*>(img_msg->data.data()),
