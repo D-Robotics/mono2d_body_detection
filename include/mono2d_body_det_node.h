@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <atomic>
 
 #include "rclcpp/rclcpp.hpp"
 #include "cv_bridge/cv_bridge.h"
@@ -102,6 +103,10 @@ class Mono2dBodyDetNode : public DnnNode {
   std::string model_name_ = "multitask_body_head_face_hand_kps_960x544";
   ModelTaskType model_task_type_ = ModelTaskType::ModelInferType;
 
+
+  std::atomic<double> width_scale_{1.0};
+  std::atomic<double> height_scale_{1.0};
+
   int model_input_width_ = -1;
   int model_input_height_ = -1;
   const int32_t model_output_count_ = 9;
@@ -135,7 +140,9 @@ class Mono2dBodyDetNode : public DnnNode {
   // val is mot instance
   std::unordered_map<std::string, std::shared_ptr<HobotMot>> hobot_mots_;
 #endif
-
+  
+  int image_gap_ = 1;
+ 
   int is_sync_mode_ = 0;
 
   // 使用shared mem通信方式订阅图片

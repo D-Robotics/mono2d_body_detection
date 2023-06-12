@@ -195,19 +195,27 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
   this->declare_parameter<int>("is_shared_mem_sub", is_shared_mem_sub_);
   this->declare_parameter<std::string>("ai_msg_pub_topic_name",
                                        ai_msg_pub_topic_name_);
+  this->declare_parameter<std::string>("ros_img_topic_name",
+                                       ros_img_topic_name_);   
+  this->declare_parameter<int>("image_gap", image_gap_);      
 
   this->get_parameter<int>("is_sync_mode", is_sync_mode_);
   this->get_parameter<std::string>("model_file_name", model_file_name_);
   this->get_parameter<int>("is_shared_mem_sub", is_shared_mem_sub_);
   this->get_parameter<std::string>("ai_msg_pub_topic_name",
                                    ai_msg_pub_topic_name_);
+  this->get_parameter<std::string>("ros_img_topic_name",
+                                       ros_img_topic_name_); 
+  this->get_parameter<int>("image_gap", image_gap_);  
   {
     std::stringstream ss;
     ss << "Parameter:"
       << "\n is_sync_mode_: " << is_sync_mode_
       << "\n model_file_name_: " << model_file_name_
       << "\n is_shared_mem_sub: " << is_shared_mem_sub_
-      << "\n ai_msg_pub_topic_name: " << ai_msg_pub_topic_name_;
+      << "\n ai_msg_pub_topic_name: " << ai_msg_pub_topic_name_
+      << "\n ros_img_topic_name: " << ros_img_topic_name_ 
+      << "\n image_gap: " << image_gap_;
     RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
   }
 
@@ -427,14 +435,19 @@ int Mono2dBodyDetNode::PostProcess(
                   filter2d_result->boxes.size());
 
       for (auto& rect : filter2d_result->boxes) {
+        rect.left /= width_scale_;
+        rect.right /= width_scale_;
+        rect.top /= height_scale_;
+        rect.bottom /= height_scale_;
         if (rect.left < 0) rect.left = 0;
         if (rect.top < 0) rect.top = 0;
-        if (rect.right > model_input_width_) {
-          rect.right = model_input_width_;
+        if (rect.right > model_input_width_ / width_scale_) {
+          rect.right = model_input_width_ / width_scale_;
         }
-        if (rect.bottom > model_input_height_) {
-          rect.bottom = model_input_height_;
+        if (rect.bottom > model_input_height_ / height_scale_) {
+          rect.bottom = model_input_height_ / height_scale_;
         }
+
         std::stringstream ss;
         ss << "rect: " << rect.left << " " << rect.top << " " << rect.right
            << " " << rect.bottom << ", " << rect.conf;
@@ -455,8 +468,8 @@ int Mono2dBodyDetNode::PostProcess(
         for (const auto& lmk : value) {
           ss << "\n" << lmk.x << "," << lmk.y << "," << lmk.score;
           geometry_msgs::msg::Point32 pt;
-          pt.set__x(lmk.x);
-          pt.set__y(lmk.y);
+          pt.set__x(lmk.x / width_scale_);
+          pt.set__y(lmk.y / height_scale_);
           target_point.point.emplace_back(pt);
           target_point.confidence.push_back(lmk.score);
         }
@@ -676,7 +689,11 @@ void Mono2dBodyDetNode::RosImgProcess(
   if (!img_msg || !rclcpp::ok()) {
     return;
   }
-
+  static int gap_cnt = 0;
+  if (++gap_cnt < image_gap_) {
+    return;
+  }
+  gap_cnt = 0;
   std::stringstream ss;
   ss << "Recved img encoding: " << img_msg->encoding
      << ", h: " << img_msg->height << ", w: " << img_msg->width
@@ -686,7 +703,8 @@ void Mono2dBodyDetNode::RosImgProcess(
      << img_msg->header.stamp.nanosec
      << ", data size: " << img_msg->data.size();
   RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
-
+  width_scale_ = static_cast<double>(model_input_width_) / img_msg->width;
+  height_scale_ = static_cast<double>(model_input_height_) / img_msg->height;
   // dump recved img msg
   // std::ofstream ofs("img." + img_msg->encoding);
   // ofs.write(reinterpret_cast<const char*>(img_msg->data.data()),
@@ -697,7 +715,7 @@ void Mono2dBodyDetNode::RosImgProcess(
   // 1. 将图片处理成模型输入数据类型DNNInput
   // 使用图片生成pym，NV12PyramidInput为DNNInput的子类
   std::shared_ptr<hobot::easy_dnn::NV12PyramidInput> pyramid = nullptr;
-  if ("rgb8" == img_msg->encoding) {
+  if ("rgb8" == img_msg->encoding || "bgr8" == img_msg->encoding) {
     auto cv_img =
         cv_bridge::cvtColorForDisplay(cv_bridge::toCvShare(img_msg), "bgr8");
     // dump recved img msg after convert
@@ -782,7 +800,11 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
   if (!img_msg || !rclcpp::ok()) {
     return;
   }
-
+  static int gap_cnt = 0;
+  if (++gap_cnt < image_gap_) {
+    return;
+  }
+  gap_cnt = 0;
   struct timespec time_start = {0, 0};
   clock_gettime(CLOCK_REALTIME, &time_start);
 
