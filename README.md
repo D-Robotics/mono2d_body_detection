@@ -122,7 +122,7 @@ hobot_mot是多目标跟踪（MOT）package，用于检测框的跟踪、ID分�
 | is_shared_mem_sub     | int         | 是否使用shared mem通信方式订阅图片消息。0：关闭；1：打开。打开和关闭shared mem通信方式订阅图片的topic名分别为/hbmem_img和/image_raw。 | 否       | 0/1                  | 1                                                    |
 | ai_msg_pub_topic_name | std::string | 发布包含人体、人头、人脸、人手框和人体关键点感知结果的AI消息的topic名                                                                 | 否       | 根据实际部署环境配置 | /hobot_mono2d_body_detection                         |
 | ros_img_topic_name    | std::string | ros的image话题名 | 否       | 根据实际部署环境配置 | /image_raw                         |
-| image_gap    | int | 抽帧间隔 | 否       | 根据实际部署环境配置 | 1                         |
+| image_gap    | int | 抽帧间隔，表示算法处理图像的频次，1表示每帧都处理，2表示每两帧处理一帧，以此类推 | 否       | 根据实际部署环境配置 | 1                         |
 
 ## 运行
 
