@@ -1,6 +1,6 @@
 # Changelog for package mono2d_body_detection
 
-tros_2.0.1 (2023-06-09)
+tros_2.1.0 (2023-06-21)
 ------------------
 1. 增加抽帧参数，控制处理频率
 2. 坐标根据图像自适应
