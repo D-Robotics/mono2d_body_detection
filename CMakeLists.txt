@@ -146,14 +146,14 @@ if(PLATFORM_J5)
   ${PROJECT_SOURCE_DIR}/config/J5/
   DESTINATION lib/${PROJECT_NAME}/config/
   )
-  # install(FILE
-  # ${PROJECT_SOURCE_DIR}/config/iou2_euclid_method_param.json
-  # DESTINATION lib/${PROJECT_NAME}/config/
-  # )
-  # install(FILE
-  # ${PROJECT_SOURCE_DIR}/config/iou2_method_param.json
-  # DESTINATION lib/${PROJECT_NAME}/config/
-  # )
+  install(FILES
+  ${PROJECT_SOURCE_DIR}/config/iou2_euclid_method_param.json
+  DESTINATION lib/${PROJECT_NAME}/config/
+  )
+  install(FILES
+  ${PROJECT_SOURCE_DIR}/config/iou2_method_param.json
+  DESTINATION lib/${PROJECT_NAME}/config/
+  )
 else()
   install(DIRECTORY
   ${PROJECT_SOURCE_DIR}/config/
