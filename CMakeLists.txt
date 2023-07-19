@@ -57,8 +57,8 @@ include_directories(include
 if(PLATFORM_X3)
   message("build platform X3")
   set(SYS_ROOT ${CMAKE_SYSROOT})
-elseif(PLATFORM_X5ultra)
-  message("build ${PROJECT_NAME} for platform X5ultra")
+elseif(PLATFORM_Rdkultra)
+  message("build ${PROJECT_NAME} for platform Rdkultra")
   set(SYS_ROOT ${CMAKE_SYSROOT})
 elseif(PLATFORM_X86)
   message("build platform X86")
@@ -141,9 +141,9 @@ install(
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-if(PLATFORM_X5ultra)
+if(PLATFORM_Rdkultra)
   install(DIRECTORY
-  ${PROJECT_SOURCE_DIR}/config/X5ultra/
+  ${PROJECT_SOURCE_DIR}/config/Rdkultra/
   DESTINATION lib/${PROJECT_NAME}/config/
   )
   install(FILES
