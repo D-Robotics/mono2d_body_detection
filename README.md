@@ -23,7 +23,7 @@ mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体�
 
 **1.安装功能包**
 
-启动机器人后，通过终端或者VNC连接机器人，点击本页面右上方的“一键部署”按钮，复制如下命令在RDK的系统上运行，完成相关Node的安装。
+启动机器人后，通过SSH终端或者VNC连接机器人，点击本页面右上方的“一键部署”按钮，复制如下命令在RDK的系统上运行，完成相关Node的安装。
 
 ```bash
 sudo apt update
