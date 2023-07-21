@@ -5,44 +5,21 @@ mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体�
 
 示例订阅图片数据image msg，发布自定义的感知结果hobot ai msg，用户可以订阅发布的ai msg用于应用开发。
 
+
+# 物料清单
+
+| 机器人名称          | 生产厂家 | 参考链接                                                     |
+| :------------------ | -------- | ------------------------------------------------------------ |
+| RDK X3             | 多厂家 | [点击跳转](https://developer.horizon.ai/sunrise) |
+| camera             | 多厂家 | MIPI cam:[F37 200W像素](https://detail.tmall.com/item.htm?abbucket=12&id=683310105141&ns=1&spm=a230r.1.14.28.1dd135f0wI2LwA&skuId=4897731532963)/[GC4663 400W像素](https://detail.tmall.com/item.htm?abbucket=12&id=683310105141&ns=1&spm=a230r.1.14.28.1dd135f0wI2LwA&skuId=4897731532963)/[IMX219 800W像素](https://detail.tmall.com/item.htm?abbucket=9&id=710344235988&rn=259e73f46059c2e6fc9de133ba9ddddf&spm=a1z10.5-b-s.w4011-22651484606.159.55df6a83NWrGPi)或usb cam|
+
+
 # 准备工作
 
 - 地平线RDK已烧录好地平线提供的Ubuntu 20.04系统镜像
 - 摄像头正确连接到RDK X3
 
 # 使用方法
-
-## 话题
-
-人体识别的结果都通过[hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg)话题发布，该话题的详细定义如下：
-```shell
-# 感知结果
-
-# 消息头
-std_msgs/Header header
-
-# 感知结果的处理帧率
-# fps val is invalid if fps is less than 0
-int16 fps
-
-# 性能统计信息，比如记录每个模型推理的耗时
-Perf[] perfs
-
-# 感知目标集合
-Target[] targets
-
-# 消失目标集合
-Target[] disappeared_targets
-```
-
-
-| 名称                 | 消息类型        | 说明|
-| ---------------------- | ----------- |---------------------------- |
-| /hobot_mono2d_body_detection          | [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg)   | 发布识别到的人体目标信息 |
-| /hbmem_img | [hobot_msgs/hbm_img_msgs/msg/HbmMsg1080P](https://github.com/HorizonRDK/hobot_msgs/blob/develop/hbm_img_msgs/msg/HbmMsg1080P.msg)  | 当is_shared_mem_sub == 1时，用shared mem通信方式订阅上一个node发布图像数据|
-| /image_raw | hsensor_msgs/msg/Image  |  当is_shared_mem_sub == 0时，订阅用ros的普通方式订阅上一个node发布相关的图像数据|
-
-
 
 **1.安装功能包**
 
@@ -53,7 +30,7 @@ sudo apt update
 sudo apt install -y tros-mono2d-body-detection
 ```
 
-**2.运行人手关键点检测功能**
+**2.运行人体检测功能**
 
 **使用MIPI摄像头发布图片**
 
@@ -90,9 +67,42 @@ ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
 
 **3.查看效果**
 
-打开同一网络电脑的浏览器，访问IP地址（浏览器输入http://IP:8000，IP为地平线RDK的IP地址），即可看到视觉识别的实时效果。
+打开同一网络电脑的浏览器，访问IP地址（浏览器输入http://IP:8000，IP为地平线RDK的IP地址），即可看到视觉识别的实时效果:
+![](./imgs/mono2d_body_detecion_render.jpg)
 
 # 接口说明
+
+## 话题
+
+人体识别的结果都通过[hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg)话题发布，该话题的详细定义如下：
+```shell
+# 感知结果
+
+# 消息头
+std_msgs/Header header
+
+# 感知结果的处理帧率
+# fps val is invalid if fps is less than 0
+int16 fps
+
+# 性能统计信息，比如记录每个模型推理的耗时
+Perf[] perfs
+
+# 感知目标集合
+Target[] targets
+
+# 消失目标集合
+Target[] disappeared_targets
+```
+
+
+| 名称                 | 消息类型        | 说明|
+| ---------------------- | ----------- |---------------------------- |
+| /hobot_mono2d_body_detection          | [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg)   | 发布识别到的人体目标信息 |
+| /hbmem_img | [hobot_msgs/hbm_img_msgs/msg/HbmMsg1080P](https://github.com/HorizonRDK/hobot_msgs/blob/develop/hbm_img_msgs/msg/HbmMsg1080P.msg)  | 当is_shared_mem_sub == 1时，用shared mem通信方式订阅上一个node发布图像数据|
+| /image_raw | hsensor_msgs/msg/Image  |  当is_shared_mem_sub == 0时，订阅用ros的普通方式订阅上一个node发布相关的图像数据|
+
+
 
 ## 参数
 
