@@ -5,9 +5,7 @@ mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体�
 
 示例订阅图片数据image msg，发布自定义的感知结果hobot ai msg，用户可以订阅发布的ai msg用于应用开发。
 
-# 使用方法
-
-## 准备工作
+# 准备工作
 
 - 地平线RDK已烧录好地平线提供的Ubuntu 20.04系统镜像
 - 摄像头正确连接到RDK X3
