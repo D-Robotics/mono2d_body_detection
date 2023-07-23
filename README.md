@@ -67,7 +67,7 @@ ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
 
 **3.查看效果**
 
-打开同一网络电脑的浏览器，访问IP地址（浏览器输入http://IP:8000，IP为地平线RDK的IP地址），即可看到视觉识别的实时效果:
+打开处于同一网络下电脑的浏览器，访问[http://IP:8000](http://IP:8000)即可看到视觉识别的实时效果，其中IP为RDK的IP地址:
 ![](./imgs/mono2d_body_detecion_render.jpg)
 
 # 接口说明
