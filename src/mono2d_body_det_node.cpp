@@ -154,16 +154,21 @@ std::vector<std::shared_ptr<DnnNodeOutput>> NodeOutputManage::Feed(
         cache_node_output_.erase(first_output);
       } else {
         if (first_output->first > *first_frame) {
+          // 首个推理结果时间戳大于首帧图像数据的时间戳
           uint64_t time_ms_diff = first_output->first - *first_frame;
           if (time_ms_diff > smart_output_timeout_ms_) {
+            // 首个推理结果和首帧图像数据的时间戳相差大于阈值，说明存在推理丢帧，删除首帧图像数据
             cache_frame_.erase(first_frame);
           }
         } else if (*first_frame > first_output->first) {
+          // 首帧图像数据的时间戳大于首个推理结果时间戳
           uint64_t time_ms_diff = *first_frame - first_output->first;
           if (time_ms_diff > smart_output_timeout_ms_) {
+            // 首帧图像数据和首个推理结果的时间戳相差大于阈值，删除首帧图像数据，理论上不应该出现这种case
             cache_node_output_.erase(first_output);
           }
         } else {
+          // 时间戳相等的情况，不会走到这里
           break;
         }
       }
@@ -337,23 +342,21 @@ int Mono2dBodyDetNode::PostProcess(
 
   std::vector<std::shared_ptr<DnnNodeOutput>> node_outputs{};
   if (node_output_manage_ptr_) {
+    // 启用了输出排序功能
     node_outputs = node_output_manage_ptr_->Feed(output);
-  }
-
-  if (node_outputs.empty()) {
-    // 直接使用当前帧输出
-    node_outputs.push_back(output);
-    if (node_output_manage_ptr_) {
+    if (node_outputs.empty()) {
+      // 排序后的输出为空
       auto fasterRcnn_output =
           std::dynamic_pointer_cast<FasterRcnnOutput>(output);
-      if (!fasterRcnn_output || !fasterRcnn_output->image_msg_header) {
-        RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"), "invalid output");
-        return -1;
+      if (!fasterRcnn_output && !fasterRcnn_output->image_msg_header) {
+        // 由于没有消息头（时间戳）导致的排序后的输出为空
+        // 直接使用当前帧输出
+        node_outputs.push_back(output);
       }
-      node_output_manage_ptr_->Erase(
-        fasterRcnn_output->image_msg_header->stamp.sec * 1000 +
-        fasterRcnn_output->image_msg_header->stamp.nanosec / 1000 / 1000);
     }
+  } else {
+    // 未启用输出排序功能，直接使用当前帧输出
+    node_outputs.push_back(output);
   }
 
   for (const auto node_output : node_outputs) {
