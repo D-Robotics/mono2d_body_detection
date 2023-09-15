@@ -1,5 +1,10 @@
 # Changelog for package mono2d_body_detection
 
+tros_2.2.2 (2023-09-15)
+------------------
+1. 修复算法后处理逻辑错误导致的算法输出结果排序失效的问题。
+2. 更新README.md。
+
 tros_2.2.1 (2023-07-14)
 ------------------
 1. 规范Rdkultra产品名。
