@@ -10,9 +10,8 @@ mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体�
 
 | 物料名称            | 生产厂家 | 参考链接                                                     |
 | :------------------ | -------- | ------------------------------------------------------------ |
-| RDK X3             | 多厂家 | [点击跳转](https://developer.horizon.cc/rdkx3) |
-| RDK Ultra          | 多厂家 | [点击跳转](https://developer.horizon.cc/rdkultra) |
-| camera             | 多厂家 | [MIPI相机](https://developer.horizon.cc/nodehubdetail/168958376283445781)<br>[USB相机](https://developer.horizon.cc/nodehubdetail/168958376283445777)|
+| RDK X3 / RDK Ultra  | 多厂家 | [RDK X3](https://developer.horizon.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra) |
+| camera              | 多厂家 | [MIPI相机](https://developer.horizon.cc/nodehubdetail/168958376283445781)<br>[USB相机](https://developer.horizon.cc/nodehubdetail/168958376283445777)|
 
 
 # 准备工作
