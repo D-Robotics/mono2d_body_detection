@@ -84,21 +84,25 @@ link_directories(
 
 if (NOT PLATFORM_X86)
   find_package(hobot_mot REQUIRED)
-
-  # 设置一个默认MOT库的安装路径
-  set(MOT_LIB_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
-  # 如果find_package成功，使用查找到的路径更新MOT_LIB_INSTALL_PATH
-  if(hobot_mot_LIBRARIES)
-    message("hobot_mot_LIBRARIES is ${hobot_mot_LIBRARIES}")
+  if(hobot_mot_FOUND)
+    message("hobot_mot LIBRARIES is ${hobot_mot_LIBRARIES}")
+    message("hobot_mot INCLUDE_DIRS is ${hobot_mot_INCLUDE_DIRS}")
+    
     # 查找库路径的最后一个/符号
     string(FIND ${hobot_mot_LIBRARIES} "/" index REVERSE)
     # 获取库路径
     string(SUBSTRING ${hobot_mot_LIBRARIES} 0 ${index} MOT_LIB_INSTALL_PATH)
-    message("update MOT_LIB_INSTALL_PATH as " ${MOT_LIB_INSTALL_PATH})
-  endif()
+    message("set MOT_LIB_INSTALL_PATH as " ${MOT_LIB_INSTALL_PATH})
+
     link_directories(
       ${MOT_LIB_INSTALL_PATH}
     )
+    include_directories(
+      ${hobot_mot_INCLUDE_DIRS}
+    )
+  else()
+    message("find hobot_mot failed")
+  endif()
 endif()
 
 add_executable(${PROJECT_NAME}
@@ -112,7 +116,6 @@ if (NOT PLATFORM_X86)
     ${PROJECT_NAME}
     hobot_mot
   )
-  message("MOT_LIB_INSTALL_PATH is " ${MOT_LIB_INSTALL_PATH})
 endif()
 
 ament_target_dependencies(
