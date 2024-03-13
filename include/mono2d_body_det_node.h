@@ -157,7 +157,7 @@ class Mono2dBodyDetNode : public DnnNode {
               std::shared_ptr<DnnNodeOutput> dnn_output);
 
 #ifdef SHARED_MEM_ENABLED
-  rclcpp::SubscriptionHbmem<hbm_img_msgs::msg::HbmMsg1080P>::ConstSharedPtr
+  rclcpp::Subscription<hbm_img_msgs::msg::HbmMsg1080P>::ConstSharedPtr
       sharedmem_img_subscription_ = nullptr;
   std::string sharedmem_img_topic_name_ = "/hbmem_img";
   void SharedMemImgProcess(
