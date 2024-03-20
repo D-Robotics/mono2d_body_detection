@@ -41,14 +41,8 @@ find_package(ai_msgs REQUIRED)
 find_package(dnn_node REQUIRED)
 find_package(cv_bridge REQUIRED)
 
-# BUILD_HBMEM is set in aarch64_toolchainfile.cmake
-if (${BUILD_HBMEM})
-  message("using shared mem")
-  find_package(hbm_img_msgs REQUIRED)
-  add_definitions(-DSHARED_MEM_ENABLED)
-else()
-  message("not using shared mem")
-endif ()
+find_package(hbm_img_msgs REQUIRED)
+add_definitions(-DSHARED_MEM_ENABLED)
 
 include_directories(include
   ${PROJECT_SOURCE_DIR}
@@ -84,25 +78,6 @@ link_directories(
 
 if (NOT PLATFORM_X86)
   find_package(hobot_mot REQUIRED)
-  if(hobot_mot_FOUND)
-    message("hobot_mot LIBRARIES is ${hobot_mot_LIBRARIES}")
-    message("hobot_mot INCLUDE_DIRS is ${hobot_mot_INCLUDE_DIRS}")
-    
-    # 查找库路径的最后一个/符号
-    string(FIND ${hobot_mot_LIBRARIES} "/" index REVERSE)
-    # 获取库路径
-    string(SUBSTRING ${hobot_mot_LIBRARIES} 0 ${index} MOT_LIB_INSTALL_PATH)
-    message("set MOT_LIB_INSTALL_PATH as " ${MOT_LIB_INSTALL_PATH})
-
-    link_directories(
-      ${MOT_LIB_INSTALL_PATH}
-    )
-    include_directories(
-      ${hobot_mot_INCLUDE_DIRS}
-    )
-  else()
-    message("find hobot_mot failed")
-  endif()
 endif()
 
 add_executable(${PROJECT_NAME}
@@ -125,14 +100,8 @@ ament_target_dependencies(
   sensor_msgs
   ai_msgs
   cv_bridge
+  hbm_img_msgs
 )
-
-if (${BUILD_HBMEM})
-  ament_target_dependencies(
-    ${PROJECT_NAME}
-    hbm_img_msgs
-  )
-endif ()
 
 include_directories(include
 ${PROJECT_SOURCE_DIR}

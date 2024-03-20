@@ -284,7 +284,7 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
                 "Create hbmem_subscription with topic_name: %s",
                 sharedmem_img_topic_name_.c_str());
     sharedmem_img_subscription_ =
-        this->create_subscription_hbmem<hbm_img_msgs::msg::HbmMsg1080P>(
+        this->create_subscription<hbm_img_msgs::msg::HbmMsg1080P>(
             sharedmem_img_topic_name_,
             10,
             std::bind(&Mono2dBodyDetNode::SharedMemImgProcess,
