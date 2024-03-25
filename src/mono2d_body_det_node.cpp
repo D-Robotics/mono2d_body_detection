@@ -30,6 +30,8 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include "builtin_interfaces/msg/detail/time__struct.h"
+#include "rcpputils/env.hpp"
+#include "rcutils/env.h"
 
 #ifdef PLATFORM_X86
 
@@ -279,6 +281,21 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
   }
 
   if (is_shared_mem_sub_) {
+    std::string ros_zerocopy_env = rcpputils::get_env_var("RMW_FASTRTPS_USE_QOS_FROM_XML");
+    if (ros_zerocopy_env.empty()) {
+      RCLCPP_ERROR_STREAM(this->get_logger(),
+        "Launching with zero-copy, but env of `RMW_FASTRTPS_USE_QOS_FROM_XML` is not set. "
+        << "Transporting data without zero-copy!");
+    } else {
+      if ("1" == ros_zerocopy_env) {
+        RCLCPP_WARN_STREAM(this->get_logger(), "Enabling zero-copy");
+      } else {
+        RCLCPP_ERROR_STREAM(this->get_logger(),
+          "env of `RMW_FASTRTPS_USE_QOS_FROM_XML` is [" << ros_zerocopy_env
+          << "], which should be set to 1. "
+          << "Data transporting without zero-copy!");
+      }
+    }
 #ifdef SHARED_MEM_ENABLED
     RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"),
                 "Create hbmem_subscription with topic_name: %s",
