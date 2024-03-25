@@ -820,6 +820,14 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
      << img_msg->time_stamp.nanosec << ", data size: " << img_msg->data_size;
   RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
 
+  rclcpp::Time msg_ts = img_msg->time_stamp;
+  rclcpp::Duration dura = this->now() - msg_ts;
+  float duration_ms = dura.nanoseconds() / 1000.0 / 1000.0;
+  RCLCPP_WARN_THROTTLE(this->get_logger(),
+    *this->get_clock(), 3000,
+    "%s, comm delay [%.4f]ms",
+    ss.str().c_str(), duration_ms);
+
   // dump recved img msg
   // std::ofstream ofs("img_" + std::to_string(img_msg->index) + "." +
   // std::string(reinterpret_cast<const char*>(img_msg->encoding.data())));
