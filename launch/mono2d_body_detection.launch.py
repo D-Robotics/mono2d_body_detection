@@ -96,6 +96,7 @@ def generate_launch_description():
                 'mipi_image_width': '960',
                 'mipi_image_height': '544',
                 'mipi_io_method': 'shared_mem',
+                'mipi_frame_ts_type': 'realtime',
                 'mipi_video_device': LaunchConfiguration('device')
             }.items()
         )
@@ -167,6 +168,13 @@ def generate_launch_description():
     if camera_type_mipi:
         return LaunchDescription([
             camera_device_arg,
+            # 启动零拷贝环境配置node
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(
+                        get_package_share_directory('hobot_shm'),
+                        'launch/hobot_shm.launch.py'))
+            ),
             # image publish
             camera_node,
             # image codec
@@ -181,6 +189,13 @@ def generate_launch_description():
     else:
         return LaunchDescription([
             camera_device_arg,
+            # 启动零拷贝环境配置node
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(
+                        get_package_share_directory('hobot_shm'),
+                        'launch/hobot_shm.launch.py'))
+            ),
             # image publish
             camera_node,
             # image codec
