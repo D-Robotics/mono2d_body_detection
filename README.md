@@ -99,7 +99,8 @@ Target[] disappeared_targets
 
 
 | Name                 | Message Type        | Description|
-| ---------------------- | ----------- |---------------------------- || /hobot_mono2d_body_detection | [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg) | Publish information about recognized human body targets |
+| ---------------------- | ----------- |---------------------------- |
+| /hobot_mono2d_body_detection | [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg) | Publish information about recognized human body targets |
 | /hbmem_img | [hobot_msgs/hbm_img_msgs/msg/HbmMsg1080P](https://github.com/HorizonRDK/hobot_msgs/blob/develop/hbm_img_msgs/msg/HbmMsg1080P.msg) | Subscribe to image data published by the previous node using shared memory communication when is_shared_mem_sub == 1 |
 | /image_raw | hsensor_msgs/msg/Image | Subscribe to relevant image data published by the previous node using standard ROS subscription method when is_shared_mem_sub == 0 |
 
