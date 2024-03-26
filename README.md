@@ -49,7 +49,9 @@ export CAM_TYPE=mipi
 # Launch the launch file
 ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
 
-```**Publishing Images Using a USB Camera**
+```
+
+**Publishing Images Using a USB Camera**
 
 ```shell
 # Configure the tros.b environment
