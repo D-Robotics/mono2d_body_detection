@@ -14,20 +14,18 @@
 
 #include "include/mono2d_body_det_node.h"
 
-#include <unistd.h>
-
 #include <fstream>
 #include <memory>
 #include <string>
+#include <unistd.h>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
+#include <cv_bridge/cv_bridge.h>
 #include "dnn_node/dnn_node.h"
 #include "dnn_node/util/image_proc.h"
-#include "include/image_utils.h"
 #include "rclcpp/rclcpp.hpp"
-#include <cv_bridge/cv_bridge.h>
 
 #include "builtin_interfaces/msg/detail/time__struct.h"
 #include "rcpputils/env.hpp"
@@ -352,10 +350,6 @@ int Mono2dBodyDetNode::PostProcess(
                  "Invalid msg_publisher_");
     return -1;
   }
-
-  RCLCPP_DEBUG(rclcpp::get_logger("mono2d_body_det"),
-               "outputs.size():%d",
-               output->outputs.size());
 
   std::vector<std::shared_ptr<DnnNodeOutput>> node_outputs{};
   if (node_output_manage_ptr_) {
@@ -734,7 +728,7 @@ void Mono2dBodyDetNode::RosImgProcess(
 
   // 1. 将图片处理成模型输入数据类型DNNInput
   // 使用图片生成pym，NV12PyramidInput为DNNInput的子类
-  std::shared_ptr<hobot::easy_dnn::NV12PyramidInput> pyramid = nullptr;
+  std::shared_ptr<hobot::dnn_node::NV12PyramidInput> pyramid = nullptr;
   if ("rgb8" == img_msg->encoding || "bgr8" == img_msg->encoding) {
     auto cv_img =
         cv_bridge::cvtColorForDisplay(cv_bridge::toCvShare(img_msg), "bgr8");
@@ -753,11 +747,10 @@ void Mono2dBodyDetNode::RosImgProcess(
                    "after cvtColorForDisplay cost ms: %d",
                    interval);
     }
-
-    pyramid = ImageUtils::GetNV12Pyramid(
+    pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromBGRImg(
         cv_img->image, model_input_height_, model_input_width_);
   } else if ("nv12" == img_msg->encoding) {
-    pyramid = ImageUtils::GetNV12PyramidFromNV12Img(
+    pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromNV12Img(
         reinterpret_cast<const char*>(img_msg->data.data()),
         img_msg->height,
         img_msg->width,
@@ -855,10 +848,10 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
 
   // 1. 将图片处理成模型输入数据类型DNNInput
   // 使用图片生成pym，NV12PyramidInput为DNNInput的子类
-  std::shared_ptr<hobot::easy_dnn::NV12PyramidInput> pyramid = nullptr;
+  std::shared_ptr<hobot::dnn_node::NV12PyramidInput> pyramid = nullptr;
   if ("nv12" ==
       std::string(reinterpret_cast<const char*>(img_msg->encoding.data()))) {
-    pyramid = ImageUtils::GetNV12PyramidFromNV12Img(
+    pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromNV12Img(
         reinterpret_cast<const char*>(img_msg->data.data()),
         img_msg->height,
         img_msg->width,
