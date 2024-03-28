@@ -165,16 +165,18 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', 'warn']
     )
 
-    if camera_type_mipi:
-        return LaunchDescription([
-            camera_device_arg,
-            # 启动零拷贝环境配置node
-            IncludeLaunchDescription(
+    shared_mem_node = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(
                         get_package_share_directory('hobot_shm'),
                         'launch/hobot_shm.launch.py'))
-            ),
+            )
+
+    if camera_type_mipi:
+        return LaunchDescription([
+            camera_device_arg,
+            # 启动零拷贝环境配置node
+            shared_mem_node,
             # image publish
             camera_node,
             # image codec
@@ -190,12 +192,7 @@ def generate_launch_description():
         return LaunchDescription([
             camera_device_arg,
             # 启动零拷贝环境配置node
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    os.path.join(
-                        get_package_share_directory('hobot_shm'),
-                        'launch/hobot_shm.launch.py'))
-            ),
+            shared_mem_node,
             # image publish
             camera_node,
             # image codec

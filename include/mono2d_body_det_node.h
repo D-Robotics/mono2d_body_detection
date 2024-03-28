@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <atomic>
 
-#include "rclcpp/rclcpp.hpp"
 #include "cv_bridge/cv_bridge.h"
-
+#include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
 
 #ifdef SHARED_MEM_ENABLED
@@ -36,7 +35,6 @@
 #include "ai_msgs/msg/capture_targets.hpp"
 #include "ai_msgs/msg/perception_targets.hpp"
 #include "dnn_node/dnn_node.h"
-#include "include/image_utils.h"
 #include "dnn_node/util/output_parser/detection/fasterrcnn_output_parser.h"
 
 #ifndef MONO2D_BODY_DET_NODE_H_
@@ -47,21 +45,11 @@ using rclcpp::NodeOptions;
 using hobot::dnn_node::DNNInput;
 using hobot::dnn_node::DnnNode;
 using hobot::dnn_node::DnnNodeOutput;
-using hobot::dnn_node::DnnNodePara;
-using hobot::dnn_node::DNNResult;
 using hobot::dnn_node::ModelTaskType;
 using hobot::dnn_node::NV12PyramidInput;
-using hobot::dnn_node::TaskId;
 
-using hobot::dnn_node::Model;
-using hobot::dnn_node::ModelInferTask;
-using hobot::dnn_node::ModelManager;
-using hobot::dnn_node::ModelRoiInferTask;
-
-using hobot::dnn_node::OutputParser;
 using hobot::dnn_node::parser_fasterrcnn::FasterRcnnKpsParserPara;
 using hobot::dnn_node::parser_fasterrcnn::LandmarksResult;
-using ai_msgs::msg::PerceptionTargets;
 
 // 使用output manage解决异步多线程情况下模型输出乱序的问题
 class NodeOutputManage {

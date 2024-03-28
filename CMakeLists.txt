@@ -83,7 +83,6 @@ endif()
 add_executable(${PROJECT_NAME}
   src/main.cpp
   src/mono2d_body_det_node.cpp
-  src/image_utils.cpp
 )
 
 if (NOT PLATFORM_X86)
