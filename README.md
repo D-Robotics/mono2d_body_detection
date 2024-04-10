@@ -27,15 +27,24 @@ The example subscribes to image data image msg and publishes custom perception r
 
 After booting up the robot, connect to the robot via SSH terminal or VNC. Click the "One-Click Deployment" button on the top right of this page, copy and run the following commands in the RDK system to install the necessary Nodes.
 
+tros foxy:
 ```bash
 sudo apt update
 sudo apt install -y tros-mono2d-body-detection
+```
+
+tros humble:
+```bash
+sudo apt update
+sudo apt install -y ros-humble-ros-base
+sudo apt install -y tros-humble-mono2d-body-detection
 ```
 
 **2. Run Human Body Detection**
 
 **Publishing Images Using MIPI Camera**
 
+tros foxy:
 ```shell
 # Set up tros.b environment
 source /opt/tros/setup.bash
@@ -51,11 +60,43 @@ ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
 
 ```
 
+tros humble:
+```shell
+# Set up tros.b humble environment
+source /opt/tros/humble/setup.bash
+
+# Copy configuration files required for running the example from the installation path of tros.b.
+cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
+
+# Configure MIPI camera
+export CAM_TYPE=mipi
+
+# Launch the launch file
+ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
+
+```
+
 **Publishing Images Using a USB Camera**
 
+tros foxy:
 ```shell
 # Configure the tros.b environment
 source /opt/tros/setup.bash
+
+# Copy the configuration files required to run the example from the installation path of tros.b.
+cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
+
+# Configure the USB camera
+export CAM_TYPE=usb
+
+# Launch the launch file
+ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
+```
+
+tros humble:
+```shell
+# Configure the tros.b humble environment
+source /opt/tros/humble/setup.bash
 
 # Copy the configuration files required to run the example from the installation path of tros.b.
 cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
