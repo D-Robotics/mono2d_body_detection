@@ -36,7 +36,6 @@ sudo apt install -y tros-mono2d-body-detection
 tros humble:
 ```bash
 sudo apt update
-sudo apt install -y ros-humble-ros-base
 sudo apt install -y tros-humble-mono2d-body-detection
 ```
 
