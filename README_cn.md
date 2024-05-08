@@ -27,15 +27,23 @@ mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体�
 
 启动机器人后，通过SSH终端或者VNC连接机器人，点击本页面右上方的“一键部署”按钮，复制如下命令在RDK的系统上运行，完成相关Node的安装。
 
+tros foxy 版本
 ```bash
 sudo apt update
 sudo apt install -y tros-mono2d-body-detection
+```
+
+tros humble 版本
+```bash
+sudo apt update
+sudo apt install -y tros-humble-mono2d-body-detection
 ```
 
 **2.运行人体检测功能**
 
 **使用MIPI摄像头发布图片**
 
+tros foxy 版本
 ```shell
 # 配置tros.b环境
 source /opt/tros/setup.bash
@@ -51,11 +59,43 @@ ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
 
 ```
 
+tros humble 版本
+```shell
+# 配置tros.b humble环境
+source /opt/tros/humble/setup.bash
+
+# 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
+cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
+
+# 配置MIPI摄像头
+export CAM_TYPE=mipi
+
+# 启动launch文件
+ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
+
+```
+
 **使用USB摄像头发布图片**
 
+tros foxy 版本
 ```shell
 # 配置tros.b环境
 source /opt/tros/setup.bash
+
+# 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
+cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
+
+# 配置USB摄像头
+export CAM_TYPE=usb
+
+# 启动launch文件
+ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
+```
+
+tros humble 版本
+```shell
+# 配置tros.b humble环境
+source /opt/tros/humble/setup.bash
 
 # 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
 cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
