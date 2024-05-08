@@ -51,18 +51,25 @@ include_directories(include
 if(PLATFORM_X3)
   message("build platform X3")
   set(SYS_ROOT ${CMAKE_SYSROOT})
+  set(PREFIX_PATH x3)
 elseif(PLATFORM_Rdkultra)
   message("build ${PROJECT_NAME} for platform Rdkultra")
   set(SYS_ROOT ${CMAKE_SYSROOT})
+  set(PREFIX_PATH rdkultra)
+elseif(PLATFORM_X5)
+  message("build ${PROJECT_NAME} for platform X5")
+  set(SYS_ROOT ${CMAKE_SYSROOT})
+  set(PREFIX_PATH x5)
 elseif(PLATFORM_X86)
   message("build platform X86")
   message("THIRD_PARTY is " ${THIRD_PARTY})
   add_definitions(-DPLATFORM_X86)
+  set(PREFIX_PATH x3)
   set(SYS_ROOT ${THIRD_PARTY})
   link_directories(${THIRD_PARTY}/usr/lib)
 else()
   message("invalid platform, build platform X3 default")
-  set(PLATFORM_X3 ON)
+  set(PREFIX_PATH x3)
   set(SYS_ROOT ${CMAKE_SYSROOT})
 endif()
 
@@ -74,6 +81,7 @@ include_directories(
 
 link_directories(
   ${SYS_ROOT}/usr/lib/hbbpu/
+  ${SYS_ROOT}/usr/lib/hbmedia/
 )
 
 if (NOT PLATFORM_X86)
@@ -112,26 +120,23 @@ install(
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-if(PLATFORM_Rdkultra)
-  install(DIRECTORY
-  ${PROJECT_SOURCE_DIR}/config/Rdkultra/
-  DESTINATION lib/${PROJECT_NAME}/config/
-  )
-  install(FILES
+install(DIRECTORY
+${PROJECT_SOURCE_DIR}/config/${PREFIX_PATH}/
+DESTINATION lib/${PROJECT_NAME}/config/
+)
+
+install(FILES
   ${PROJECT_SOURCE_DIR}/config/iou2_euclid_method_param.json
   DESTINATION lib/${PROJECT_NAME}/config/
-  )
-  install(FILES
+)
+install(FILES
   ${PROJECT_SOURCE_DIR}/config/iou2_method_param.json
   DESTINATION lib/${PROJECT_NAME}/config/
-  )
-else()
-  install(DIRECTORY
-  ${PROJECT_SOURCE_DIR}/config/
+)
+install(FILES
+  ${PROJECT_SOURCE_DIR}/config/960x544.nv12
   DESTINATION lib/${PROJECT_NAME}/config/
-  )
-endif()
-
+)
 
 install(DIRECTORY
 ${PROJECT_SOURCE_DIR}/launch/

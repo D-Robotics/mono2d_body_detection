@@ -71,6 +71,10 @@ class NodeOutputManage {
 
 struct FasterRcnnOutput : public DnnNodeOutput {
   std::shared_ptr<std_msgs::msg::Header> image_msg_header = nullptr;
+
+  // 算法推理使用的图像数据，用于本地渲染使用
+  std::shared_ptr<hobot::dnn_node::NV12PyramidInput> pyramid = nullptr;
+
   struct timespec preprocess_timespec_start;
   struct timespec preprocess_timespec_end;
 };
@@ -86,6 +90,9 @@ class Mono2dBodyDetNode : public DnnNode {
   int PostProcess(const std::shared_ptr<DnnNodeOutput>& outputs) override;
 
  private:
+  // 是否在本地渲染并保存渲染后的图片
+  int dump_render_img_ = 0;
+
   std::string model_file_name_ =
       "config/multitask_body_head_face_hand_kps_960x544.hbm";
   std::string model_name_ = "multitask_body_head_face_hand_kps_960x544";

@@ -87,6 +87,105 @@ int CalTimeMsDuration(const builtin_interfaces::msg::Time& start,
          start.nanosec / 1000 / 1000;
 }
 
+static std::vector<cv::Scalar> colors{
+    cv::Scalar(255, 0, 0),    // red
+    cv::Scalar(255, 255, 0),  // yellow
+    cv::Scalar(0, 255, 0),    // green
+    cv::Scalar(0, 0, 255),    // blue
+};
+
+int Render(
+    const std::shared_ptr<hobot::dnn_node::NV12PyramidInput> &pyramid,
+    const ai_msgs::msg::PerceptionTargets::UniquePtr &ai_msg) {
+  if (!pyramid) {
+    std::cout << "!pyramid" << std::endl;
+  }
+  if (!ai_msg) {
+    std::cout << "!ai_msg" << std::endl;
+  }
+  if (!pyramid || !ai_msg) return -1;
+  char *y_img = reinterpret_cast<char *>(pyramid->y_vir_addr);
+  char *uv_img = reinterpret_cast<char *>(pyramid->uv_vir_addr);
+  auto height = pyramid->height;
+  auto width = pyramid->y_stride;
+  auto img_y_size = height * width;
+  auto img_uv_size = img_y_size / 2;
+  char *buf = new char[img_y_size + img_uv_size];
+  memcpy(buf, y_img, img_y_size);
+  memcpy(buf + img_y_size, uv_img, img_uv_size);
+  cv::Mat nv12(height * 3 / 2, width, CV_8UC1, buf);
+  cv::Mat mat;
+  cv::cvtColor(nv12, mat, CV_YUV2BGR_NV12);
+  delete[] buf;
+
+  RCLCPP_INFO(rclcpp::get_logger("ImageUtils"),
+              "target size: %d",
+              ai_msg->targets.size());
+  bool hasRois = false;
+  for (size_t idx = 0; idx < ai_msg->targets.size(); idx++) {
+    const auto &target = ai_msg->targets.at(idx);
+    if (target.rois.empty()) {
+      continue;
+    }
+    hasRois = true;
+    RCLCPP_INFO(rclcpp::get_logger("ImageUtils"),
+                "target type: %s, rois.size: %d",
+                target.type.c_str(),
+                target.rois.size());
+    auto &color = colors[idx % colors.size()];
+    for (const auto &roi : target.rois) {
+      RCLCPP_INFO(
+          rclcpp::get_logger("ImageUtils"),
+          "roi.type: %s, x_offset: %d y_offset: %d width: %d height: %d",
+          roi.type.c_str(),
+          roi.rect.x_offset,
+          roi.rect.y_offset,
+          roi.rect.width,
+          roi.rect.height);
+      cv::rectangle(mat,
+                    cv::Point(roi.rect.x_offset, roi.rect.y_offset),
+                    cv::Point(roi.rect.x_offset + roi.rect.width,
+                              roi.rect.y_offset + roi.rect.height),
+                    color,
+                    3);
+      std::string roi_type = target.type;
+      if (!roi.type.empty()) {
+        roi_type = roi.type;
+      }
+      if (!roi_type.empty()) {
+        cv::putText(mat,
+                    roi_type,
+                    cv::Point2f(roi.rect.x_offset, roi.rect.y_offset - 10),
+                    cv::HersheyFonts::FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    color,
+                    1.5);
+      }
+    }
+
+    for (const auto &lmk : target.points) {
+      for (const auto &pt : lmk.point) {
+        cv::circle(mat, cv::Point(pt.x, pt.y), 3, color, 3);
+      }
+    }
+  }
+
+  if (!hasRois) {
+    RCLCPP_WARN(rclcpp::get_logger("ImageUtils"),
+                "Frame has no roi, skip the rendering");
+    return 0;
+  }
+  std::string saving_path = "render_" + ai_msg->header.frame_id + "_" +
+                            std::to_string(ai_msg->header.stamp.sec) + "_" +
+                            std::to_string(ai_msg->header.stamp.nanosec) +
+                            ".jpeg";
+  RCLCPP_WARN(rclcpp::get_logger("ImageUtils"),
+              "Draw result to file: %s",
+              saving_path.c_str());
+  cv::imwrite(saving_path, mat);
+  return 0;
+}
+
 void NodeOutputManage::Feed(uint64_t ts_ms) {
   RCLCPP_DEBUG(
       rclcpp::get_logger("mono2d_body_det"), "feed frame ts: %llu", ts_ms);
@@ -683,6 +782,9 @@ int Mono2dBodyDetNode::PostProcess(
                   static_cast<int>(perf_postprocess.time_ms_duration));
     }
 
+    if (dump_render_img_) {
+      Render(fasterRcnn_output->pyramid, pub_data);
+    }
     msg_publisher_->publish(std::move(pub_data));
   }
   return 0;
@@ -885,6 +987,9 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
   dnn_output->image_msg_header = std::make_shared<std_msgs::msg::Header>();
   dnn_output->image_msg_header->set__frame_id(std::to_string(img_msg->index));
   dnn_output->image_msg_header->set__stamp(img_msg->time_stamp);
+  if (dump_render_img_) {
+    dnn_output->pyramid = pyramid;
+  }
 
   if (node_output_manage_ptr_) {
     node_output_manage_ptr_->Feed(img_msg->time_stamp.sec * 1000 +
