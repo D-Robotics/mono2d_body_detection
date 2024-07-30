@@ -4,7 +4,7 @@
   <name>mono2d_body_detection</name>
   <version>2.3.0</version>
   <description>TogetheROS mono2d body detection</description>
-  <maintainer email="kao.zhu@horizon.ai">zhukao</maintainer>
+  <maintainer email="kao.zhu@d-robotics.cc">zhukao</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

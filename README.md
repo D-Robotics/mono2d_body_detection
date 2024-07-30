@@ -2,7 +2,7 @@ English| [简体中文](./README_cn.md)
 
 # Function Introduction
 
-The mono2d_body_detection package is an example of single RGB human body detection algorithm developed using the hobot_dnn package. It uses models and image data on the Horizon X3 development board to perform model inference using the BPU processor.
+The mono2d_body_detection package is an example of single RGB human body detection algorithm developed using the hobot_dnn package. It uses models and image data on the RDK X3 development board to perform model inference using the BPU processor.
 The detection model is faster R-CNN, and the model output includes human body, human head, human face, human hand bounding boxes, and human body keypoint detection results.
 
 The example subscribes to image data image msg and publishes custom perception results hobot ai msg. Users can subscribe to the published ai msg for application development.
@@ -12,13 +12,13 @@ The example subscribes to image data image msg and publishes custom perception r
 
 | Material Name        | Manufacturer | Reference Link                                               |
 | :------------------- | ------------ | ------------------------------------------------------------ |
-| RDK X3 / RDK Ultra    | Multiple Manufacturers | [RDK X3](https://developer.horizon.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra) |
+| RDK X3 / RDK Ultra    | Multiple Manufacturers | [RDK X3](https://developer.d-robotics.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra) |
 | Camera              | Multiple Manufacturers | [MIPI Camera](https://developer.horizon.cc/nodehubdetail/168958376283445781)<br>[USB Camera](https://developer.horizon.cc/nodehubdetail/168958376283445777)|
 
 
 # Preparation
 
-- Horizon RDK comes with pre-burned Ubuntu 20.04 system image.
+- RDK comes with pre-burned Ubuntu 20.04 system image.
 - Camera is correctly connected to RDK X3.
 
 # Instructions
@@ -116,7 +116,7 @@ Open a browser on a computer in the same network, visit [http://IP:8000](http://
 
 ## Topics
 
-All body recognition results are published through the topic [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg), whose detailed definition is as follows:
+All body recognition results are published through the topic [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/D-Robotics/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg), whose detailed definition is as follows:
 ```shell
 # Perception Results
 
@@ -140,8 +140,8 @@ Target[] disappeared_targets
 
 | Name                 | Message Type        | Description|
 | ---------------------- | ----------- |---------------------------- |
-| /hobot_mono2d_body_detection | [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg) | Publish information about recognized human body targets |
-| /hbmem_img | [hobot_msgs/hbm_img_msgs/msg/HbmMsg1080P](https://github.com/HorizonRDK/hobot_msgs/blob/develop/hbm_img_msgs/msg/HbmMsg1080P.msg) | Subscribe to image data published by the previous node using shared memory communication when is_shared_mem_sub == 1 |
+| /hobot_mono2d_body_detection | [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/D-Robotics/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg) | Publish information about recognized human body targets |
+| /hbmem_img | [hobot_msgs/hbm_img_msgs/msg/HbmMsg1080P](https://github.com/D-Robotics/hobot_msgs/blob/develop/hbm_img_msgs/msg/HbmMsg1080P.msg) | Subscribe to image data published by the previous node using shared memory communication when is_shared_mem_sub == 1 |
 | /image_raw | hsensor_msgs/msg/Image | Subscribe to relevant image data published by the previous node using standard ROS subscription method when is_shared_mem_sub == 0 |
 
 

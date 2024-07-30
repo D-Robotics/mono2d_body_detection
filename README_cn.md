@@ -2,7 +2,7 @@
 
 # 功能介绍
 
-mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体检测算法示例，在地平线X3开发板上使用模型和图像数据利用BPU处理器进行模型推理。
+mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体检测算法示例，在RDK X3开发板上使用模型和图像数据利用BPU处理器进行模型推理。
 检测模型为fasterRcnn，模型输出包含人体、人头、人脸、人手框和人体关键点检测结果。
 
 示例订阅图片数据image msg，发布自定义的感知结果hobot ai msg，用户可以订阅发布的ai msg用于应用开发。
@@ -12,13 +12,13 @@ mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体�
 
 | 物料名称            | 生产厂家 | 参考链接                                                     |
 | :------------------ | -------- | ------------------------------------------------------------ |
-| RDK X3 / RDK Ultra  | 多厂家 | [RDK X3](https://developer.horizon.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra) |
+| RDK X3 / RDK Ultra  | 多厂家 | [RDK X3](https://developer.d-robotics.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra) |
 | camera              | 多厂家 | [MIPI相机](https://developer.horizon.cc/nodehubdetail/168958376283445781)<br>[USB相机](https://developer.horizon.cc/nodehubdetail/168958376283445777)|
 
 
 # 准备工作
 
-- 地平线RDK已烧录好地平线提供的Ubuntu 20.04系统镜像
+- RDK已烧录好Ubuntu 20.04系统镜像
 - 摄像头正确连接到RDK X3
 
 # 使用方法
@@ -116,7 +116,7 @@ ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
 
 ## 话题
 
-人体识别的结果都通过[hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg)话题发布，该话题的详细定义如下：
+人体识别的结果都通过[hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/D-Robotics/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg)话题发布，该话题的详细定义如下：
 ```shell
 # 感知结果
 
@@ -140,8 +140,8 @@ Target[] disappeared_targets
 
 | 名称                 | 消息类型        | 说明|
 | ---------------------- | ----------- |---------------------------- |
-| /hobot_mono2d_body_detection          | [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/HorizonRDK/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg)   | 发布识别到的人体目标信息 |
-| /hbmem_img | [hobot_msgs/hbm_img_msgs/msg/HbmMsg1080P](https://github.com/HorizonRDK/hobot_msgs/blob/develop/hbm_img_msgs/msg/HbmMsg1080P.msg)  | 当is_shared_mem_sub == 1时，用shared mem通信方式订阅上一个node发布图像数据|
+| /hobot_mono2d_body_detection          | [hobot_msgs/ai_msgs/msg/PerceptionTargets](https://github.com/D-Robotics/hobot_msgs/blob/develop/ai_msgs/msg/PerceptionTargets.msg)   | 发布识别到的人体目标信息 |
+| /hbmem_img | [hobot_msgs/hbm_img_msgs/msg/HbmMsg1080P](https://github.com/D-Robotics/hobot_msgs/blob/develop/hbm_img_msgs/msg/HbmMsg1080P.msg)  | 当is_shared_mem_sub == 1时，用shared mem通信方式订阅上一个node发布图像数据|
 | /image_raw | hsensor_msgs/msg/Image  |  当is_shared_mem_sub == 0时，订阅用ros的普通方式订阅上一个node发布相关的图像数据|
 
 
