@@ -37,7 +37,7 @@ def generate_launch_description():
         # local image publish
         feedback_picture_arg = DeclareLaunchArgument(
             'picture',
-            default_value='./config/test.jpg',
+            default_value='./config/960x544.nv12',
             description='feedback picture')
         fb_node = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -46,7 +46,7 @@ def generate_launch_description():
                     'launch/hobot_image_publisher.launch.py')),
             launch_arguments={
                 'publish_image_source': LaunchConfiguration('picture'),
-                'publish_image_format': 'jpg',
+                'publish_image_format': 'nv12',
                 'publish_output_image_w': '960',
                 'publish_output_image_h': '544',
                 'publish_message_topic_name': '/hbmem_img',
