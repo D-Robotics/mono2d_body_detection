@@ -26,6 +26,7 @@
 #include "dnn_node/dnn_node.h"
 #include "dnn_node/util/image_proc.h"
 #include "rclcpp/rclcpp.hpp"
+#include "hobot_cv/hobotcv_imgproc.h"
 
 #include "builtin_interfaces/msg/detail/time__struct.h"
 #include "rcpputils/env.hpp"
@@ -71,6 +72,7 @@ struct box_s {
 };
 
 using MotBox = box_s;
+using hobot_cv;
 
 #endif
 builtin_interfaces::msg::Time ConvertToRosTime(
@@ -300,7 +302,9 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
   this->declare_parameter<std::string>("ai_msg_pub_topic_name",
                                        ai_msg_pub_topic_name_);
   this->declare_parameter<std::string>("ros_img_topic_name",
-                                       ros_img_topic_name_);   
+                                       ros_img_topic_name_);
+  this->declare_parameter<std::string>("sharedmem_img_topic_name",
+                                       sharedmem_img_topic_name_);
   this->declare_parameter<int>("image_gap", image_gap_);      
 
   this->get_parameter<int>("is_sync_mode", is_sync_mode_);
@@ -310,6 +314,8 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
                                    ai_msg_pub_topic_name_);
   this->get_parameter<std::string>("ros_img_topic_name",
                                        ros_img_topic_name_); 
+  this->get_parameter<std::string>("sharedmem_img_topic_name",
+                                       sharedmem_img_topic_name_); 
   this->get_parameter<int>("image_gap", image_gap_);  
   {
     std::stringstream ss;
@@ -546,19 +552,14 @@ int Mono2dBodyDetNode::PostProcess(
                   "Output box type: %s, rect size: %d",
                   roi_type.data(),
                   filter2d_result->boxes.size());
-
       for (auto& rect : filter2d_result->boxes) {
-        rect.left /= width_scale_;
-        rect.right /= width_scale_;
-        rect.top /= height_scale_;
-        rect.bottom /= height_scale_;
         if (rect.left < 0) rect.left = 0;
         if (rect.top < 0) rect.top = 0;
-        if (rect.right > model_input_width_ / width_scale_) {
-          rect.right = model_input_width_ / width_scale_;
+        if (rect.right > model_input_width_ ) {
+          rect.right = model_input_width_;
         }
-        if (rect.bottom > model_input_height_ / height_scale_) {
-          rect.bottom = model_input_height_ / height_scale_;
+        if (rect.bottom > model_input_height_) {
+          rect.bottom = model_input_height_;
         }
 
         std::stringstream ss;
@@ -638,10 +639,10 @@ int Mono2dBodyDetNode::PostProcess(
         target.set__track_id(rect.id);
         ai_msgs::msg::Roi roi;
         roi.type = roi_type;
-        roi.rect.set__x_offset(rect.x1);
-        roi.rect.set__y_offset(rect.y1);
-        roi.rect.set__width(rect.x2 - rect.x1);
-        roi.rect.set__height(rect.y2 - rect.y1);
+        roi.rect.set__x_offset(rect.x1 / width_scale_);
+        roi.rect.set__y_offset(rect.y1 / height_scale_);
+        roi.rect.set__width((rect.x2 - rect.x1) / width_scale_);
+        roi.rect.set__height((rect.y2 - rect.y1) / height_scale_);
         target.rois.emplace_back(roi);
         if (out_roi.first == body_box_output_index_ &&
             out_roi.second.size() == body_kps.size()) {
@@ -811,7 +812,7 @@ void Mono2dBodyDetNode::RosImgProcess(
   }
   gap_cnt = 0;
   std::stringstream ss;
-  ss << "Recved img encoding: " << img_msg->encoding
+  ss << "RosImgProcess Recved img encoding: " << img_msg->encoding
      << ", h: " << img_msg->height << ", w: " << img_msg->width
      << ", step: " << img_msg->step
      << ", frame_id: " << img_msg->header.frame_id
@@ -924,14 +925,15 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
   clock_gettime(CLOCK_REALTIME, &time_start);
 
   std::stringstream ss;
-  ss << "Recved img encoding: "
+  ss << "SharedMemImgProcess Recved img encoding: "
      << std::string(reinterpret_cast<const char*>(img_msg->encoding.data()))
      << ", h: " << img_msg->height << ", w: " << img_msg->width
      << ", step: " << img_msg->step << ", index: " << img_msg->index
      << ", stamp: " << img_msg->time_stamp.sec << "_"
      << img_msg->time_stamp.nanosec << ", data size: " << img_msg->data_size;
   RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
-
+  width_scale_ = static_cast<double>(model_input_width_) / img_msg->width;
+  height_scale_ = static_cast<double>(model_input_height_) / img_msg->height;
   rclcpp::Time msg_ts = img_msg->time_stamp;
   rclcpp::Duration dura = this->now() - msg_ts;
   float duration_ms = dura.nanoseconds() / 1000.0 / 1000.0;
@@ -953,12 +955,26 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
   std::shared_ptr<hobot::dnn_node::NV12PyramidInput> pyramid = nullptr;
   if ("nv12" ==
       std::string(reinterpret_cast<const char*>(img_msg->encoding.data()))) {
-    pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromNV12Img(
+
+      if (img_msg->height != static_cast<uint32_t>(model_input_height_) ||
+        img_msg->width != static_cast<uint32_t>(model_input_width_)) {
+        auto resize_img = hobot_cv::hobotcv_resize(reinterpret_cast<const char*>(img_msg->data.data()),
+                          img_msg->height,img_msg->width,model_input_height_,model_input_width_);
+        pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromNV12Img(
+        reinterpret_cast<const char*>(resize_img->imageAddr),
+        resize_img->height,
+        resize_img->width,
+        model_input_height_,
+        model_input_width_);
+
+      } else {
+        pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromNV12Img(
         reinterpret_cast<const char*>(img_msg->data.data()),
         img_msg->height,
         img_msg->width,
         model_input_height_,
         model_input_width_);
+      }
   } else {
     RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"),
                 "Unsupported img encoding: %s",
