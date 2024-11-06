@@ -40,6 +40,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(ai_msgs REQUIRED)
 find_package(dnn_node REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(hobot_cv REQUIRED)
 
 find_package(hbm_img_msgs REQUIRED)
 add_definitions(-DSHARED_MEM_ENABLED)
@@ -109,6 +110,7 @@ ament_target_dependencies(
   sensor_msgs
   ai_msgs
   cv_bridge
+  hobot_cv
   hbm_img_msgs
 )
 
