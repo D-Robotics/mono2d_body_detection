@@ -81,8 +81,7 @@ struct FasterRcnnOutput : public DnnNodeOutput {
 
 class Mono2dBodyDetNode : public DnnNode {
  public:
-  Mono2dBodyDetNode(const std::string& node_name,
-                    const NodeOptions& options = NodeOptions());
+  Mono2dBodyDetNode(const NodeOptions& options = NodeOptions());
   ~Mono2dBodyDetNode() override;
 
  protected:

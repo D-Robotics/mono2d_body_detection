@@ -293,9 +293,8 @@ void NodeOutputManage::Erase(uint64_t ts_ms) {
   }
 }
 
-Mono2dBodyDetNode::Mono2dBodyDetNode(const std::string& node_name,
-                                     const NodeOptions& options)
-    : DnnNode(node_name, options) {
+Mono2dBodyDetNode::Mono2dBodyDetNode(const NodeOptions& options)
+    : DnnNode("mono2d_body_det", options) {
   this->declare_parameter<int>("is_sync_mode", is_sync_mode_);
   this->declare_parameter<std::string>("model_file_name", model_file_name_);
   this->declare_parameter<int>("is_shared_mem_sub", is_shared_mem_sub_);
@@ -853,12 +852,29 @@ void Mono2dBodyDetNode::RosImgProcess(
     pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromBGRImg(
         cv_img->image, model_input_height_, model_input_width_);
   } else if ("nv12" == img_msg->encoding) {
-    pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromNV12Img(
+      if (img_msg->height != static_cast<uint32_t>(model_input_height_) ||
+        img_msg->width != static_cast<uint32_t>(model_input_width_)) {
+        auto resize_img = hobot_cv::hobotcv_resize(reinterpret_cast<const char*>(img_msg->data.data()),
+                          img_msg->height,img_msg->width,model_input_height_,model_input_width_);
+        if (resize_img == nullptr) {
+          return;
+        }
+        pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromNV12Img(
+        reinterpret_cast<const char*>(resize_img->imageAddr),
+        resize_img->height,
+        resize_img->width,
+        model_input_height_,
+        model_input_width_);
+
+      } else {
+        pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromNV12Img(
         reinterpret_cast<const char*>(img_msg->data.data()),
         img_msg->height,
         img_msg->width,
         model_input_height_,
         model_input_width_);
+      }
+
   }
 
   if (!pyramid) {
@@ -960,6 +976,9 @@ void Mono2dBodyDetNode::SharedMemImgProcess(
         img_msg->width != static_cast<uint32_t>(model_input_width_)) {
         auto resize_img = hobot_cv::hobotcv_resize(reinterpret_cast<const char*>(img_msg->data.data()),
                           img_msg->height,img_msg->width,model_input_height_,model_input_width_);
+        if (resize_img == nullptr) {
+          return;
+        }
         pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromNV12Img(
         reinterpret_cast<const char*>(resize_img->imageAddr),
         resize_img->height,
@@ -1081,3 +1100,6 @@ int Mono2dBodyDetNode::DoMot(
   return 0;
 }
 #endif
+
+#include <rclcpp_components/register_node_macro.hpp>
+RCLCPP_COMPONENTS_REGISTER_NODE(Mono2dBodyDetNode)

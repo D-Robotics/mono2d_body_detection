@@ -19,6 +19,7 @@
   <depend>hbm_img_msgs</depend>
   <depend>ai_msgs</depend>
   <depend>hobot_mot</depend>
+  <depend>rclcpp_components</depend>
 
   <exec_depend>hobot_image_publisher</exec_depend>
   <exec_depend>mipi_cam</exec_depend>
