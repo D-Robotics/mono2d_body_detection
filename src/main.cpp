@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
   RCLCPP_WARN(rclcpp::get_logger("example"),
               "This is mono2d body det example!");
 
-  rclcpp::spin(std::make_shared<Mono2dBodyDetNode>("mono2d_body_det"));
+  rclcpp::spin(std::make_shared<Mono2dBodyDetNode>());
 
   rclcpp::shutdown();
   return 0;

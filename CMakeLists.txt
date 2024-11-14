@@ -41,6 +41,8 @@ find_package(ai_msgs REQUIRED)
 find_package(dnn_node REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(hobot_cv REQUIRED)
+find_package(rclcpp_components REQUIRED)
+
 
 find_package(hbm_img_msgs REQUIRED)
 add_definitions(-DSHARED_MEM_ENABLED)
@@ -91,27 +93,35 @@ if (NOT PLATFORM_X86)
   find_package(hobot_mot REQUIRED)
 endif()
 
-add_executable(${PROJECT_NAME}
+add_library(${PROJECT_NAME}_component SHARED
   src/main.cpp
   src/mono2d_body_det_node.cpp
 )
 
+target_compile_definitions(${PROJECT_NAME}_component
+  PRIVATE "COMPOSITION_BUILDING_DLL")
 if (NOT PLATFORM_X86)
   ament_target_dependencies(
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}_component
     hobot_mot
   )
 endif()
 
 ament_target_dependencies(
-  ${PROJECT_NAME}
+  ${PROJECT_NAME}_component
   rclcpp
+  rclcpp_components
   dnn_node
   sensor_msgs
   ai_msgs
   cv_bridge
   hobot_cv
   hbm_img_msgs
+)
+
+rclcpp_components_register_node(${PROJECT_NAME}_component
+  PLUGIN "Mono2dBodyDetNode"
+  EXECUTABLE ${PROJECT_NAME}
 )
 
 include_directories(include
@@ -123,6 +133,11 @@ install(
   TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
+
+install(
+    TARGETS ${PROJECT_NAME}_component
+    RUNTIME DESTINATION lib/${PROJECT_NAME}
+  )
 
 install(DIRECTORY
 ${PROJECT_SOURCE_DIR}/config/${PREFIX_PATH}/
