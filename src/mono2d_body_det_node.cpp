@@ -774,7 +774,7 @@ int Mono2dBodyDetNode::PostProcess(
     RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
 
     if (node_output->rt_stat->fps_updated) {
-      RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"),
+      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
                   "input fps: %.2f, out fps: %.2f, infer time ms: %d, "
                   "post process time ms: %d",
                   node_output->rt_stat->input_fps,
