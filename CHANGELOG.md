@@ -1,5 +1,9 @@
 # Changelog for package mono2d_body_detection
 
+tros_2.4.1 (2024-11-15)
+------------------
+1. 依赖的OpenCV版本从3.4.5升级到4.X。
+
 tros_2.4.0 (2024-08-15)
 ------------------
 1. 新增X5模型适配。

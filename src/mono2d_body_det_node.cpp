@@ -31,6 +31,7 @@
 #include "builtin_interfaces/msg/detail/time__struct.h"
 #include "rcpputils/env.hpp"
 #include "rcutils/env.h"
+#include "opencv2/imgproc/types_c.h"
 
 #ifdef PLATFORM_X86
 
