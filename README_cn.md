@@ -107,6 +107,21 @@ export CAM_TYPE=usb
 ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
 ```
 
+**使用本地回灌图片**
+
+仅支持 `tros humble` 版本。
+
+```shell
+# 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
+cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
+
+# 配置本地回灌图片
+export CAM_TYPE=fb
+
+# 启动launch文件
+ros2 launch mono2d_body_detection mono2d_body_detection.launch.py publish_image_source:=config/person_body.jpg publish_image_format:=jpg publish_output_image_w:=960 publish_output_image_h:=544
+```
+
 **3.查看效果**
 
 打开处于同一网络下电脑的浏览器，访问[http://IP:8000](http://IP:8000)即可看到视觉识别的实时效果，其中IP为RDK的IP地址:

@@ -107,6 +107,21 @@ export CAM_TYPE=usb
 ros2 launch mono2d_body_detection mono2d_body_detection.launch.py
 ```
 
+**Using Local Replay Images**
+
+Only supports the `tros humble` version.
+
+```shell
+# Copy the configuration files needed for the running example from the installation path of tros.b.
+cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
+
+# Configure local replay images
+export CAM_TYPE=fb
+
+# Launch the launch file
+ros2 launch mono2d_body_detection mono2d_body_detection.launch.py publish_image_source:=config/person_body.jpg publish_image_format:=jpg publish_output_image_w:=960 publish_output_image_h:=544
+```
+
 **3. Checking the Effects**
 
 Open a browser on a computer in the same network, visit [http://IP:8000](http://IP:8000) to see real-time visual recognition effects, where IP is the RDK's IP address:

@@ -152,8 +152,12 @@ install(FILES
   ${PROJECT_SOURCE_DIR}/config/iou2_method_param.json
   DESTINATION lib/${PROJECT_NAME}/config/
 )
+# install(FILES
+#   ${PROJECT_SOURCE_DIR}/config/960x544.nv12
+#   DESTINATION lib/${PROJECT_NAME}/config/
+# )
 install(FILES
-  ${PROJECT_SOURCE_DIR}/config/960x544.nv12
+  ${PROJECT_SOURCE_DIR}/config/person_body.jpg
   DESTINATION lib/${PROJECT_NAME}/config/
 )
 
