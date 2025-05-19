@@ -369,7 +369,7 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const NodeOptions& options)
   hbDNNTensorProperties tensor_properties;
   model_manage->GetOutputTensorProperties(tensor_properties, kps_output_index_);
   parser_para_->aligned_kps_dim.clear();
-  parser_para_->kps_shifts_.clear();model_file_name_
+  parser_para_->kps_shifts_.clear();
   for (int i = 0; i < tensor_properties.alignedShape.numDimensions; i++) {
     parser_para_->aligned_kps_dim.push_back(
         tensor_properties.alignedShape.dimensionSize[i]);
