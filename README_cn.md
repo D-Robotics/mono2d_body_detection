@@ -2,24 +2,34 @@
 
 # 功能介绍
 
-mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体检测算法示例，在RDK X3开发板上使用模型和图像数据利用BPU处理器进行模型推理。
-检测模型为fasterRcnn，模型输出包含人体、人头、人脸、人手框和人体关键点检测结果。
+mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体检测算法示例，在RDK系列开发板上使用模型和图像数据利用BPU处理器进行模型推理。
+检测模型有两类:
+
+- fasterRcnn: 模型输出包含人体、人头、人脸、人手框和人体关键点检测结果。
+
+- [yolo-pose](https://docs.ultralytics.com/zh/tasks/pose/): 模型输出包含人体和人体关键点检测结果。
 
 示例订阅图片数据image msg，发布自定义的感知结果hobot ai msg，用户可以订阅发布的ai msg用于应用开发。
 
+# 模型与平台支持情况
+
+| 模型类型            | 支持平台 |
+| :------------------ | -------- |
+| fasterRcnn | RDK X3 / RDK Ultra / RDK X5 |
+| [yolo-pose](https://docs.ultralytics.com/zh/tasks/pose/)              | RDK S100 |
 
 # 物料清单
 
 | 物料名称            | 生产厂家 | 参考链接                                                     |
 | :------------------ | -------- | ------------------------------------------------------------ |
-| RDK X3 / RDK Ultra  | 多厂家 | [RDK X3](https://developer.d-robotics.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra) |
+| RDK X3 / RDK Ultra / RDK X5 / RDK S100 | 多厂家 | [RDK X3](https://developer.d-robotics.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra)<br>[RDK X5](https://developer.horizon.cc/rdkx5)<br>[RDK S100](https://developer.horizon.cc/rdks100) |
 | camera              | 多厂家 | [MIPI相机](https://developer.horizon.cc/nodehubdetail/168958376283445781)<br>[USB相机](https://developer.horizon.cc/nodehubdetail/168958376283445777)|
 
 
 # 准备工作
 
-- RDK已烧录好Ubuntu 20.04系统镜像
-- 摄像头正确连接到RDK X3
+- RDK已烧录好Ubuntu 20.04/22.04系统镜像
+- 摄像头正确连接到RDK X3/Ultra/X5/S100
 
 # 使用方法
 
@@ -39,7 +49,7 @@ sudo apt update
 sudo apt install -y tros-humble-mono2d-body-detection
 ```
 
-**2.运行人体检测功能**
+**2.运行 fasterRcnn 人体检测功能**
 
 **使用MIPI摄像头发布图片**
 
@@ -122,7 +132,60 @@ export CAM_TYPE=fb
 ros2 launch mono2d_body_detection mono2d_body_detection.launch.py publish_image_source:=config/person_body.jpg publish_image_format:=jpg publish_output_image_w:=960 publish_output_image_h:=544
 ```
 
-**3.查看效果**
+**3.运行 yolo-pose 人体检测功能**
+
+**使用MIPI摄像头发布图片**
+
+仅支持 `tros humble` 版本。
+
+```shell
+# 配置tros.b humble环境
+source /opt/tros/humble/setup.bash
+
+# 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
+cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
+
+# 配置MIPI摄像头
+export CAM_TYPE=mipi
+
+# 启动launch文件
+ros2 launch mono2d_body_detection mono2d_body_detection.launch.py kps_model_type:=1 kps_image_width:=640 kps_image_height:=640 kps_model_file_name:=config/yolo11x_pose_nashe_640x640_nv12.hbm 
+```
+
+**使用USB摄像头发布图片**
+
+仅支持 `tros humble` 版本。
+
+```shell
+# 配置tros.b humble环境
+source /opt/tros/humble/setup.bash
+
+# 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
+cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
+
+# 配置USB摄像头
+export CAM_TYPE=usb
+
+# 启动launch文件
+ros2 launch mono2d_body_detection mono2d_body_detection.launch.py kps_model_type:=1 kps_image_width:=640 kps_image_height:=640 kps_model_file_name:=config/yolo11x_pose_nashe_640x640_nv12.hbm 
+```
+
+**使用本地回灌图片**
+
+仅支持 `tros humble` 版本。
+
+```shell
+# 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
+cp -r /opt/tros/${TROS_DISTRO}/lib/mono2d_body_detection/config/ .
+
+# 配置本地回灌图片
+export CAM_TYPE=fb
+
+# 启动launch文件
+ros2 launch mono2d_body_detection mono2d_body_detection.launch.py publish_image_source:=config/person_body.jpg publish_image_format:=jpg kps_model_type:=1 publish_output_image_w:=640 publish_output_image_h:=640 kps_model_file_name:=config/yolo11x_pose_nashe_640x640_nv12.hbm 
+```
+
+**4.查看效果**
 
 打开处于同一网络下电脑的浏览器，访问[http://IP:8000](http://IP:8000)即可看到视觉识别的实时效果，其中IP为RDK的IP地址:
 ![](./imgs/mono2d_body_detecion_render.jpg)
@@ -171,5 +234,5 @@ Target[] disappeared_targets
 | ai_msg_pub_topic_name | std::string | 发布包含人体、人头、人脸、人手框和人体关键点感知结果的AI消息的topic名                                                                 | 否       | 根据实际部署环境配置 | /hobot_mono2d_body_detection                         |
 | ros_img_topic_name    | std::string | ros的image话题名 | 否       | 根据实际部署环境配置 | /image_raw                         |
 | image_gap    | int | 抽帧间隔，表示算法处理图像的频次，1表示每帧都处理，2表示每两帧处理一帧，以此类推 | 否       | 根据实际部署环境配置 | 1                         |
-
-
+| dump_render_img               | int         | 下载渲染图片 | No       | 调试中是否需要保存渲染图 | 0                         |
+| model_type               | int         | 模型类型. 0: fasterRcnn, 1: yolo-pose | 0                         |

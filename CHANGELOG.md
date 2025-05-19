@@ -1,5 +1,9 @@
 # Changelog for package mono2d_body_detection
 
+tros_2.4.2 (2025-05-19)
+------------------
+1. 新增 yolo-pose 在 RDK S100 推理。
+
 tros_2.4.1 (2024-11-15)
 ------------------
 1. 依赖的OpenCV版本从3.4.5升级到4.X。

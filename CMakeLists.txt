@@ -53,16 +53,23 @@ include_directories(include
 
 if(PLATFORM_X3)
   message("build platform X3")
+  add_definitions(-DBPU_LIBDNN)
   set(SYS_ROOT ${CMAKE_SYSROOT})
   set(PREFIX_PATH x3)
 elseif(PLATFORM_Rdkultra)
   message("build ${PROJECT_NAME} for platform Rdkultra")
+  add_definitions(-DBPU_LIBDNN)
   set(SYS_ROOT ${CMAKE_SYSROOT})
   set(PREFIX_PATH rdkultra)
 elseif(PLATFORM_X5)
   message("build ${PROJECT_NAME} for platform X5")
+  add_definitions(-DBPU_LIBDNN)
   set(SYS_ROOT ${CMAKE_SYSROOT})
   set(PREFIX_PATH x5)
+elseif(PLATFORM_S100)
+  message("build ${PROJECT_NAME} for platform S100")
+  set(SYS_ROOT ${CMAKE_SYSROOT})
+  set(PREFIX_PATH s100)
 elseif(PLATFORM_X86)
   message("build platform X86")
   message("THIRD_PARTY is " ${THIRD_PARTY})
@@ -80,6 +87,7 @@ message("CMAKE_SYSROOT is " ${CMAKE_SYSROOT})
 include_directories(
   ${SYS_ROOT}/usr/include/
   ${SYS_ROOT}/usr/hobot/include/
+  ${SYS_ROOT}/usr/include/hobot/
   ${SYS_ROOT}/usr/include/opencv/
 )
 
@@ -96,6 +104,7 @@ endif()
 add_library(${PROJECT_NAME}_component SHARED
   src/main.cpp
   src/mono2d_body_det_node.cpp
+  src/post_process/yolo_pose_parser.cpp
 )
 
 target_compile_definitions(${PROJECT_NAME}_component
@@ -152,10 +161,7 @@ install(FILES
   ${PROJECT_SOURCE_DIR}/config/iou2_method_param.json
   DESTINATION lib/${PROJECT_NAME}/config/
 )
-# install(FILES
-#   ${PROJECT_SOURCE_DIR}/config/960x544.nv12
-#   DESTINATION lib/${PROJECT_NAME}/config/
-# )
+
 install(FILES
   ${PROJECT_SOURCE_DIR}/config/person_body.jpg
   DESTINATION lib/${PROJECT_NAME}/config/
