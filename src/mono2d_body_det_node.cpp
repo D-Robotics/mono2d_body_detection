@@ -305,7 +305,9 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const NodeOptions& options)
                                        ros_img_topic_name_);
   this->declare_parameter<std::string>("sharedmem_img_topic_name",
                                        sharedmem_img_topic_name_);
-  this->declare_parameter<int>("image_gap", image_gap_);      
+  this->declare_parameter<int>("image_gap", image_gap_);
+  this->declare_parameter<int>("dump_render_img", dump_render_img_);
+  this->declare_parameter<int>("model_type", model_type_);
 
   this->get_parameter<int>("is_sync_mode", is_sync_mode_);
   this->get_parameter<std::string>("model_file_name", model_file_name_);
@@ -317,6 +319,8 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const NodeOptions& options)
   this->get_parameter<std::string>("sharedmem_img_topic_name",
                                        sharedmem_img_topic_name_); 
   this->get_parameter<int>("image_gap", image_gap_);  
+  this->get_parameter<int>("dump_render_img", dump_render_img_);
+  this->get_parameter<int>("model_type", model_type_);
   {
     std::stringstream ss;
     ss << "Parameter:"
@@ -325,7 +329,9 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const NodeOptions& options)
       << "\n is_shared_mem_sub: " << is_shared_mem_sub_
       << "\n ai_msg_pub_topic_name: " << ai_msg_pub_topic_name_
       << "\n ros_img_topic_name: " << ros_img_topic_name_ 
-      << "\n image_gap: " << image_gap_;
+      << "\n image_gap: " << image_gap_
+      << "\n dump_render_img: " << dump_render_img_
+      << "\n model_type: " << model_type_;
     RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
   }
 
@@ -342,11 +348,28 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const NodeOptions& options)
     rclcpp::shutdown();
     return;
   }
+
+  // 未指定模型名，从加载的模型中查询出模型名
+  if (model_name_.empty()) {
+    if (!GetModel()) {
+      RCLCPP_ERROR(rclcpp::get_logger("mono2d_body_det"), "Get model fail.");
+    } else {
+      model_name_ = GetModel()->GetName();
+      RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"), "Get model name: %s from load model.", model_name_.c_str());
+    }
+  }
+
+  if (model_type_ == 1) {
+    box_outputs_index_.clear();
+    box_outputs_index_.push_back(body_box_output_index_);
+  }
+
+#ifdef BPU_LIBDNN
   parser_para_ = std::make_shared<FasterRcnnKpsParserPara>();
   hbDNNTensorProperties tensor_properties;
   model_manage->GetOutputTensorProperties(tensor_properties, kps_output_index_);
   parser_para_->aligned_kps_dim.clear();
-  parser_para_->kps_shifts_.clear();
+  parser_para_->kps_shifts_.clear();model_file_name_
   for (int i = 0; i < tensor_properties.alignedShape.numDimensions; i++) {
     parser_para_->aligned_kps_dim.push_back(
         tensor_properties.alignedShape.dimensionSize[i]);
@@ -368,6 +391,7 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const NodeOptions& options)
     ss << "\n";
     RCLCPP_INFO(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
   }
+#endif
 
   msg_publisher_ = this->create_publisher<ai_msgs::msg::PerceptionTargets>(
       ai_msg_pub_topic_name_, 10);
@@ -500,8 +524,14 @@ int Mono2dBodyDetNode::PostProcess(
     std::shared_ptr<LandmarksResult> lmk_result = nullptr;
     
     // 使用hobot dnn内置的Parse解析方法，解析算法输出的DNNTensor类型数据
-    if (hobot::dnn_node::parser_fasterrcnn::Parse(node_output, parser_para_,
-    box_outputs_index_, kps_output_index_, body_box_output_index_, results, lmk_result) < 0) {
+    int ret = -1;
+    if (model_type_ == 0) {
+      ret = hobot::dnn_node::parser_fasterrcnn::Parse(node_output, parser_para_,
+    box_outputs_index_, kps_output_index_, body_box_output_index_, results, lmk_result);
+    } else if (model_type_ == 1) {
+      ret = YoloPoseParse(node_output->output_tensors, results, lmk_result);
+    }
+    if (ret < 0) {
       RCLCPP_ERROR(rclcpp::get_logger("dnn_node_sample"),
                   "Parse node_output fail!");
       return -1;

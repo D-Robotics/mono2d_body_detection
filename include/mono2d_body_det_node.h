@@ -37,6 +37,8 @@
 #include "dnn_node/dnn_node.h"
 #include "dnn_node/util/output_parser/detection/fasterrcnn_output_parser.h"
 
+#include "post_process/yolo_pose_parser.h"
+
 #ifndef MONO2D_BODY_DET_NODE_H_
 #define MONO2D_BODY_DET_NODE_H_
 
@@ -92,9 +94,11 @@ class Mono2dBodyDetNode : public DnnNode {
   // 是否在本地渲染并保存渲染后的图片
   int dump_render_img_ = 0;
 
+  int model_type_ = 1;
+
   std::string model_file_name_ =
       "config/multitask_body_head_face_hand_kps_960x544.hbm";
-  std::string model_name_ = "multitask_body_head_face_hand_kps_960x544";
+  std::string model_name_ = "";
   ModelTaskType model_task_type_ = ModelTaskType::ModelInferType;
 
 
@@ -108,7 +112,7 @@ class Mono2dBodyDetNode : public DnnNode {
   const int32_t head_box_output_index_ = 3;
   const int32_t face_box_output_index_ = 5;
   const int32_t hand_box_output_index_ = 7;
-  const std::vector<int32_t> box_outputs_index_ = {body_box_output_index_,
+  std::vector<int32_t> box_outputs_index_ = {body_box_output_index_,
                                                    head_box_output_index_,
                                                    face_box_output_index_,
                                                    hand_box_output_index_};
