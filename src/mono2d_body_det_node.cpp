@@ -307,6 +307,7 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const NodeOptions& options)
                                        sharedmem_img_topic_name_);
   this->declare_parameter<int>("image_gap", image_gap_);
   this->declare_parameter<int>("dump_render_img", dump_render_img_);
+  this->declare_parameter<int>("track_mode", track_mode_);
   this->declare_parameter<int>("model_type", model_type_);
 
   this->get_parameter<int>("is_sync_mode", is_sync_mode_);
@@ -320,17 +321,20 @@ Mono2dBodyDetNode::Mono2dBodyDetNode(const NodeOptions& options)
                                        sharedmem_img_topic_name_); 
   this->get_parameter<int>("image_gap", image_gap_);  
   this->get_parameter<int>("dump_render_img", dump_render_img_);
+  this->get_parameter<int>("track_mode", track_mode_);
   this->get_parameter<int>("model_type", model_type_);
+
   {
     std::stringstream ss;
     ss << "Parameter:"
       << "\n is_sync_mode_: " << is_sync_mode_
-      << "\n model_file_name_: " << model_file_name_
+      << "\n model_file_name: " << model_file_name_
       << "\n is_shared_mem_sub: " << is_shared_mem_sub_
       << "\n ai_msg_pub_topic_name: " << ai_msg_pub_topic_name_
       << "\n ros_img_topic_name: " << ros_img_topic_name_ 
       << "\n image_gap: " << image_gap_
       << "\n dump_render_img: " << dump_render_img_
+      << "\n track_mode: " << track_mode_
       << "\n model_type: " << model_type_;
     RCLCPP_WARN(rclcpp::get_logger("mono2d_body_det"), "%s", ss.str().c_str());
   }
@@ -666,7 +670,9 @@ int Mono2dBodyDetNode::PostProcess(
         }
         ai_msgs::msg::Target target;
         target.set__type("person");
-        target.set__track_id(rect.id);
+        if (track_mode_ == 1) {
+          target.set__track_id(rect.id);
+        }
         ai_msgs::msg::Roi roi;
         roi.type = roi_type;
         roi.rect.set__x_offset(rect.x1 / width_scale_);

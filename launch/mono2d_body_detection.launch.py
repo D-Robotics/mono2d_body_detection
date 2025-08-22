@@ -26,17 +26,14 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    image_width_launch_arg = DeclareLaunchArgument(
-        "kps_image_width", default_value=TextSubstitution(text="960")
-    )
-    image_height_launch_arg = DeclareLaunchArgument(
-        "kps_image_height", default_value=TextSubstitution(text="544")
-    )
     model_file_name_launch_arg = DeclareLaunchArgument(
         "kps_model_file_name", default_value=TextSubstitution(text="config/multitask_body_head_face_hand_kps_960x544.hbm")
     )
     model_type_launch_arg = DeclareLaunchArgument(
         "kps_model_type", default_value=TextSubstitution(text="0")
+    )
+    track_mode_launch_arg = DeclareLaunchArgument(
+        "kps_track_mode", default_value=TextSubstitution(text="1")
     )
     camera_type = os.getenv('CAM_TYPE')
     print("camera_type is ", camera_type)
@@ -56,9 +53,7 @@ def generate_launch_description():
             launch_arguments={
                 'publish_message_topic_name': '/image',
                 'publish_is_shared_mem': 'False',
-                'publish_is_compressed_img_pub': 'True',
-                'publish_output_image_w': LaunchConfiguration('kps_image_width'),
-                'publish_output_image_h': LaunchConfiguration('kps_image_height')
+                'publish_is_compressed_img_pub': 'True'
             }.items()
         )
         camera_node = fb_node
@@ -72,8 +67,8 @@ def generate_launch_description():
                     get_package_share_directory('hobot_usb_cam'),
                     'launch/hobot_usb_cam.launch.py')),
             launch_arguments={
-                'usb_image_width': LaunchConfiguration('kps_image_width'),
-                'usb_image_height': LaunchConfiguration('kps_image_height')
+                'usb_image_width': '640',
+                'usb_image_height': '480'
             }.items()
         )
 
@@ -93,8 +88,8 @@ def generate_launch_description():
                     get_package_share_directory('mipi_cam'),
                     'launch/mipi_cam.launch.py')),
             launch_arguments={
-                'mipi_image_width': LaunchConfiguration('kps_image_width'),
-                'mipi_image_height': LaunchConfiguration('kps_image_height'),
+                'mipi_image_width': '960',
+                'mipi_image_height': '544',
                 'mipi_io_method': 'shared_mem',
                 'mipi_frame_ts_type': 'realtime',
                 'mipi_video_device': LaunchConfiguration('device')
@@ -161,6 +156,7 @@ def generate_launch_description():
         parameters=[
             {"model_file_name": LaunchConfiguration('kps_model_file_name')},
             {"model_type": LaunchConfiguration('kps_model_type')},
+            {"track_mode": LaunchConfiguration('kps_track_mode')},
             {"ai_msg_pub_topic_name": LaunchConfiguration(
                 'mono2d_body_pub_topic')}
         ],
@@ -176,10 +172,9 @@ def generate_launch_description():
 
     if camera_type_mipi:
         return LaunchDescription([
-            image_width_launch_arg,
-            image_height_launch_arg,
             model_file_name_launch_arg,
             model_type_launch_arg,
+            track_mode_launch_arg,
             camera_device_arg,
             # 启动零拷贝环境配置node
             shared_mem_node,
@@ -196,10 +191,9 @@ def generate_launch_description():
         ])
     else:
         return LaunchDescription([
-            image_width_launch_arg,
-            image_height_launch_arg,
             model_file_name_launch_arg,
             model_type_launch_arg,
+            track_mode_launch_arg,
             # 启动零拷贝环境配置node
             shared_mem_node,
             # image publish

@@ -1,5 +1,10 @@
 # Changelog for package mono2d_body_detection
 
+tros_2.4.3 (2025-08-22)
+------------------
+1. 设置跟随开关, 用于打开关闭默认跟随方法。
+2. 更新 launch 文件配置。
+
 tros_2.4.2 (2025-05-19)
 ------------------
 1. 新增 yolo-pose 在 RDK S100 推理。
