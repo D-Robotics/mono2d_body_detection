@@ -25,6 +25,15 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
+    model_file_name_launch_arg = DeclareLaunchArgument(
+        "kps_model_file_name", default_value=TextSubstitution(text="config/multitask_body_head_face_hand_kps_960x544.hbm")
+    )
+    model_type_launch_arg = DeclareLaunchArgument(
+        "kps_model_type", default_value=TextSubstitution(text="0")
+    )
+    track_mode_launch_arg = DeclareLaunchArgument(
+        "kps_track_mode", default_value=TextSubstitution(text="1")
+    )
     # nv12->jpeg
     jpeg_codec_node = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -65,6 +74,9 @@ def generate_launch_description():
         executable='mono2d_body_detection',
         output='screen',
         parameters=[
+            {"model_file_name": LaunchConfiguration('kps_model_file_name')},
+            {"model_type": LaunchConfiguration('kps_model_type')},
+            {"track_mode": LaunchConfiguration('kps_track_mode')},
             {"ai_msg_pub_topic_name": LaunchConfiguration(
                 'mono2d_body_pub_topic')}
         ],
@@ -72,6 +84,9 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        model_file_name_launch_arg,
+        model_type_launch_arg,
+        track_mode_launch_arg,
         # image codec
         jpeg_codec_node,
         # body detection

@@ -235,3 +235,4 @@ Target[] disappeared_targets
 | image_gap               | int         | Frame skipping interval, indicating the frequency at which images are processed by the algorithm. 1 processes every frame, 2 processes every two frames, and so on. | No       | Configured based on deployment environment | 1                         |
 | dump_render_img               | int         | Whether dump the render img | No       | Configured based on whether you need | 0                         |
 | model_type               | int         | model type of kps mdoel. 0: fasterRcnn, 1: yolo-pose | 0                         |
+| track_mode               | int         | track mode. 0: no track, 1:track | 1                         |

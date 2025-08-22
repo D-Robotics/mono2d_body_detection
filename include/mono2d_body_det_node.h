@@ -96,6 +96,8 @@ class Mono2dBodyDetNode : public DnnNode {
 
   int model_type_ = 1;
 
+  int track_mode_ = 1;
+
   std::string model_file_name_ =
       "config/multitask_body_head_face_hand_kps_960x544.hbm";
   std::string model_name_ = "";

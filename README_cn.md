@@ -236,3 +236,4 @@ Target[] disappeared_targets
 | image_gap    | int | 抽帧间隔，表示算法处理图像的频次，1表示每帧都处理，2表示每两帧处理一帧，以此类推 | 否       | 根据实际部署环境配置 | 1                         |
 | dump_render_img               | int         | 下载渲染图片 | No       | 调试中是否需要保存渲染图 | 0                         |
 | model_type               | int         | 模型类型. 0: fasterRcnn, 1: yolo-pose | 0                         |
+| track_mode               | int         | 跟踪模式. 0: 不跟踪, 1:跟踪 | 1                         |
