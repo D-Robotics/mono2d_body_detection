@@ -51,6 +51,28 @@ include_directories(include
   ${PROJECT_SOURCE_DIR}
 )
 
+if(DEFINED ENV{ROS_DISTRO})
+    set(PREFERRED_ROS_DISTRO $ENV{ROS_DISTRO})
+else()
+    # 设置默认优先级，jazzy优先于humble
+    if(EXISTS "/opt/ros/jazzy")
+        set(PREFERRED_ROS_DISTRO jazzy)
+    elseif(EXISTS "/opt/ros/humble")
+        set(PREFERRED_ROS_DISTRO humble)
+    else()
+        set(PREFERRED_ROS_DISTRO humble)
+    endif()
+endif()
+
+if(DEFINED PREFERRED_ROS_DISTRO)
+    message(STATUS "Preferred ROS distribution: ${PREFERRED_ROS_DISTRO}")
+endif()
+
+
+if("${PREFERRED_ROS_DISTRO}" STREQUAL "jazzy")
+    add_definitions(-DCV_BRIDGE_CPP)
+endif()
+
 if(PLATFORM_X3)
   message("build platform X3")
   add_definitions(-DBPU_LIBDNN)
@@ -70,6 +92,10 @@ elseif(PLATFORM_S100)
   message("build ${PROJECT_NAME} for platform S100")
   set(SYS_ROOT ${CMAKE_SYSROOT})
   set(PREFIX_PATH s100)
+elseif(PLATFORM_S600)
+  message("build ${PROJECT_NAME} for platform S600")
+  set(SYS_ROOT ${CMAKE_SYSROOT})
+  set(PREFIX_PATH s600)
 elseif(PLATFORM_X86)
   message("build platform X86")
   message("THIRD_PARTY is " ${THIRD_PARTY})

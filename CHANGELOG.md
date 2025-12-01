@@ -1,5 +1,9 @@
 # Changelog for package mono2d_body_detection
 
+tros_2.4.4 (2025-12-01)
+------------------
+1. 支持ros jazzy
+
 tros_2.4.3 (2025-08-22)
 ------------------
 1. 设置跟随开关, 用于打开关闭默认跟随方法。

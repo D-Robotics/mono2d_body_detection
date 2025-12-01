@@ -20,7 +20,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "cv_bridge/cv_bridge.h"
+#ifdef CV_BRIDGE_CPP
+#include <cv_bridge/cv_bridge.hpp>
+#else
+#include <cv_bridge/cv_bridge.h>
+#endif
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
 
