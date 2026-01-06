@@ -16,20 +16,20 @@ mono2d_body_detection package是使用hobot_dnn package开发的单目rgb人体�
 | 模型类型            | 支持平台 |
 | :------------------ | -------- |
 | fasterRcnn | RDK X3 / RDK Ultra / RDK X5 |
-| [yolo-pose](https://docs.ultralytics.com/zh/tasks/pose/)              | RDK S100 |
+| [yolo-pose](https://docs.ultralytics.com/zh/tasks/pose/)              | RDK S100 / RDK S600 |
 
 # 物料清单
 
 | 物料名称            | 生产厂家 | 参考链接                                                     |
 | :------------------ | -------- | ------------------------------------------------------------ |
-| RDK X3 / RDK Ultra / RDK X5 / RDK S100 | 多厂家 | [RDK X3](https://developer.d-robotics.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra)<br>[RDK X5](https://developer.horizon.cc/rdkx5)<br>[RDK S100](https://developer.horizon.cc/rdks100) |
+| RDK X3 / RDK Ultra / RDK X5 / RDK S100 / RDK S600 | 多厂家 | [RDK X3](https://developer.d-robotics.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra)<br>[RDK X5](https://developer.horizon.cc/rdkx5)<br>[RDK S100](https://developer.horizon.cc/rdks100)<br>[RDK S600](https://developer.horizon.cc/rdks600) |
 | camera              | 多厂家 | [MIPI相机](https://developer.horizon.cc/nodehubdetail/168958376283445781)<br>[USB相机](https://developer.horizon.cc/nodehubdetail/168958376283445777)|
 
 
 # 准备工作
 
-- RDK已烧录好Ubuntu 20.04/22.04系统镜像
-- 摄像头正确连接到RDK X3/Ultra/X5/S100
+- RDK已烧录好Ubuntu 20.04/22.04/24.04系统镜像
+- 摄像头正确连接到RDK X3/Ultra/X5/S100/S600
 
 # 使用方法
 
@@ -47,6 +47,12 @@ tros humble 版本
 ```bash
 sudo apt update
 sudo apt install -y tros-humble-mono2d-body-detection
+```
+
+tros jazzy 版本
+```bash
+sudo apt update
+sudo apt install -y tros-jazzy-mono2d-body-detection
 ```
 
 **2.运行 fasterRcnn 人体检测功能**

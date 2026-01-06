@@ -17,20 +17,20 @@ The example subscribes to image data image msg and publishes custom perception r
 | Model Type            | Platform |
 | :------------------ | -------- |
 | fasterRcnn | RDK X3 / RDK Ultra / RDK X5 |
-| [yolo-pose](https://docs.ultralytics.com/zh/tasks/pose/)              | RDK S100 |
+| [yolo-pose](https://docs.ultralytics.com/zh/tasks/pose/)              | RDK S100 / RDK S600 |
 
 # Bill of Materials
 
 | Material Name        | Manufacturer | Reference Link                                               |
 | :------------------- | ------------ | ------------------------------------------------------------ |
-| RDK X3 / RDK Ultra / RDK X5 / RDK S100 | Multiple Manufacturers | (https://developer.d-robotics.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra)<br>[RDK X5](https://developer.horizon.cc/rdkx5)<br>[RDK S100](https://developer.horizon.cc/rdks100) |
+| RDK X3 / RDK Ultra / RDK X5 / RDK S100 / RDK S600 | Multiple Manufacturers | (https://developer.d-robotics.cc/rdkx3)<br>[RDK Ultra](https://developer.horizon.cc/rdkultra)<br>[RDK X5](https://developer.horizon.cc/rdkx5)<br>[RDK S100](https://developer.horizon.cc/rdks100)<br>[RDK S600](https://developer.horizon.cc/rdks600) |
 | Camera              | Multiple Manufacturers | [MIPI Camera](https://developer.horizon.cc/nodehubdetail/168958376283445781)<br>[USB Camera](https://developer.horizon.cc/nodehubdetail/168958376283445777)|
 
 
 # Preparation
 
-- RDK comes with pre-burned Ubuntu 20.04 system image.
-- Camera is correctly connected to RDK X3.
+- RDK comes with pre-burned Ubuntu 20.04/22.04/24.04 system image.
+- Camera is correctly connected to RDK X3/X5/Ultra/S100/S600.
 
 # Instructions
 
@@ -48,6 +48,12 @@ tros humble:
 ```bash
 sudo apt update
 sudo apt install -y tros-humble-mono2d-body-detection
+```
+
+tros jazzy:
+```bash
+sudo apt update
+sudo apt install -y tros-jazzy-mono2d-body-detection
 ```
 
 **2. Run fasterRcnn Human Body Detection**
