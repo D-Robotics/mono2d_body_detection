@@ -1,8 +1,8 @@
 # Changelog for package mono2d_body_detection
 
-tros_2.4.4 (2025-12-01)
+tros_2.5.0 (2026-01-05)
 ------------------
-1. 支持ros jazzy
+1. 适配 RDK S600。
 
 tros_2.4.3 (2025-08-22)
 ------------------
